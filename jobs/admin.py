@@ -71,10 +71,15 @@ class ApplicantAdmin(admin.ModelAdmin):
     def user_gender(self, obj):
         return obj.user.gender
 
+class RecruitmentPostInline(admin.StackedInline):
+    model = RecruitmentPost
+    pk_name = 'employer'
 
-class EmploymentAdmin(admin.ModelAdmin):
+
+class EmployerAdmin(admin.ModelAdmin):
     list_display = ['id', 'position', 'companyName', 'company_type', 'user_username', 'user_mobile', 'user_email', 'user_gender', ]
     search_fields = ['id', 'position', 'companyName', 'user__username', 'user__mobile', 'user__email',]
+    inlines = (RecruitmentPostInline,)
 
     def user_username(self, obj):
         return obj.user.username
@@ -162,11 +167,19 @@ class RatingAdmin(admin.ModelAdmin):
     def interaction__recruitment__title(self, obj):
         return obj.recruitment.title
 
+class MyAdminSite(admin.AdminSite):
+    site_header = 'My Custom Admin'
+    site_title = 'My Custom Admin'
+    index_title = 'Welcome to My Custom Admin'
+
+my_admin_site = MyAdminSite(name='myadmin')
+my_admin_site.register(RecruitmentPost, RecruitmentPostAdmin)
+
 
 
 # Register your models here.
 admin.site.register(User, UserAdmin),
-admin.site.register(Employer, EmploymentAdmin),
+admin.site.register(Employer, EmployerAdmin),
 admin.site.register(Applicant, ApplicantAdmin),
 admin.site.register(Area, AreaAdmin),
 admin.site.register(EmploymentType, EmploymentTypeAdmin),
