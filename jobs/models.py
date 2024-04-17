@@ -63,6 +63,8 @@ class Employer(models.Model):
     # Ngành nghề hoạt động
     def __str__(self):
         return self.user.username
+    class Meta:
+        ordering = ['id']
 
 # Người xin việc
 class Applicant(models.Model):
@@ -76,13 +78,16 @@ class Applicant(models.Model):
     # Mức lương mong muốn
     salary_expectation = models.IntegerField()
     # Kinh nghiệm làm việc
-    experience = models.TextField()
+    experience = models.TextField(null=True, blank=True)
     # cv của ứng viên
     cv = CloudinaryField('cv', null=True, blank=True)
     # Nghề nghiệp
     career = models.ForeignKey('Career', on_delete=models.RESTRICT, null=True, blank=True)
     def __str__(self):
         return self.user.username
+    class Meta:
+        ordering = ['id']
+
 
 # Khu vực
 class Area(models.Model):
@@ -98,7 +103,8 @@ class EmploymentType(BaseModel):
     # full_time; part_time; internship
     def __str__(self):
         return self.type
-
+    class Meta:
+        ordering = ['id']
 
 # Bài tuyển dụng
 class RecruitmentPost(BaseModel):
@@ -127,21 +133,22 @@ class RecruitmentPost(BaseModel):
         return self.title
     class Meta:
         unique_together = ('employer', 'title')
-        ordering = ['-created_date']
-
+        ordering = ['-created_date', 'id']
 
 
 
 
 # Đơn xin việc
 class JobApplication(BaseModel):
+    is_student = models.BooleanField(default=False, null=True)  # Thêm để thực hiện truy vấn theo bài
+    date = models.DateTimeField(null=True)  # Thêm mới để thực hiện truy vấn theo bài
     recruitment = models.ForeignKey(RecruitmentPost, models.RESTRICT, null=True)
     applicant = models.ForeignKey(Applicant, models.RESTRICT, null=True)
     status = models.ForeignKey('Status', models.RESTRICT, null=True, default='Pending')
     coverLetter = RichTextField(null=True, blank=True)
     class Meta:
         unique_together = ('recruitment', 'applicant')
-        ordering = ['created_date']
+        ordering = ['created_date', 'id']
     def __str__(self):
         return self.recruitment.title + ", " + self.applicant.user.username + " apply"
 

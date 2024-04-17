@@ -1,0 +1,83 @@
+{% extends 'admin/base_site.html' %}
+
+{% block branding %}
+<h1>Job management system</h1>
+{% endblock %}
+
+{% block title %}
+Thống kê | By Mtie
+{% endblock %}
+
+{% block content %}
+<h1>THỐNG KÊ - BÁO CÁO ĐƠN ỨNG TUYỂN TRÊN HỆ THỐNG</h1>
+
+
+<div class="quarterly-report">
+    <h2>Quarterly Job Applications Report</h2>
+    <table border="1">
+        <thead>
+        <tr>
+            <th>Career</th>
+            <th>Quarter</th>
+            <th>Year</th>
+            <th>Total Applications</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in queryset %}
+        <tr>
+            <td>{{item.recruitment__career__name}}</td>
+            <td>{{item.quarter}}</td>
+            <td>{{item.year}}</td>
+            <td>{{item.total_applications}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<canvas id="myChart"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    window.onload = () => {
+       var ctx = document.getElementById('myChart').getContext('2d');
+       var chartData = {
+           labels: [{% for item in queryset %}"{{ item.recruitment__career__name }} - Q{{ item.quarter }} {{ item.year }}",{% endfor %}],
+           datasets: [{
+              label: 'Total Applications',
+              data: [{% for item in queryset %}{{ item.total_applications }},{% endfor %}],
+              backgroundColor: [
+                   'rgba(255, 159, 64, 0.2)',
+                   'rgba(153, 102, 255, 0.2)',
+                   'rgba(75, 192, 192, 0.2)',
+                   'rgba(54, 162, 235, 0.2)',
+               ],
+               borderColor: [
+                   'rgba(255, 159, 64, 1)',
+                   'rgba(153, 102, 255, 1)',
+                   'rgba(75, 192, 192, 1)',
+                   'rgba(54, 162, 235, 0.2)',
+               ],
+               borderWidth: 1
+           }]
+       };
+       var myChart = new Chart(ctx, {
+           type: 'bar',
+           data: chartData,
+           options: {
+               scales: {
+                   yAxes: [{
+                       ticks: {
+                           beginAtZero: true
+                       }
+                   }]
+               }
+           }
+       });
+
+    }
+</script>
+
+
+{% endblock %}

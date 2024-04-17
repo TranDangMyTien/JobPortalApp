@@ -1,11 +1,14 @@
 from django.contrib import admin
+from django.template.response import TemplateResponse
 from django.utils.safestring import mark_safe
-
-from jobs.models import (User, Employer, Applicant, Area, EmploymentType, RecruitmentPost, JobApplication, Status, Skill,
+from jobs.models import (User, Employer, Applicant, Area, EmploymentType, RecruitmentPost, JobApplication, Status,
+                         Skill,
                          Career, Comment, Rating)
 from django import forms
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 import cloudinary
+from django.urls import path
+from jobs import dao
 
 
 class JobApplicationForm(forms.ModelForm):
@@ -45,17 +48,22 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ['id', 'mobile']
     readonly_fields = ['is_superuser']
     form = UserForm
+
     def avatar(self, user):
         if user.avatar:
             if type(user.image) is cloudinary.CloudinaryResource:
-                return mark_safe("<img src='{img_url}' alt='{alt}' width=120px/>".format(img_url=user.avatar.url, alt='AvatarUser'))
-            return mark_safe("<img src='/static/{img_url}' alt='{alt}' width=120px/>".format(img_url=user.avatar.name, alt='AvatarUser'))
+                return mark_safe(
+                    "<img src='{img_url}' alt='{alt}' width=120px/>".format(img_url=user.avatar.url, alt='AvatarUser'))
+            return mark_safe("<img src='/static/{img_url}' alt='{alt}' width=120px/>".format(img_url=user.avatar.name,
+                                                                                             alt='AvatarUser'))
 
 
 class ApplicantAdmin(admin.ModelAdmin):
-    list_display = ['id', 'position', 'career', 'user_username', 'user_mobile', 'user_email', 'user_gender', 'salary_expectation']
+    list_display = ['id', 'position', 'career', 'user_username', 'user_mobile', 'user_email', 'user_gender',
+                    'salary_expectation']
     search_fields = ['id', 'position', 'career__name', 'user__username', 'user__mobile', 'user__email', ]
     list_filter_horizontal = ['salary_expectation', ]
+
     def career(self, obj):
         return obj.career.name
 
@@ -71,14 +79,16 @@ class ApplicantAdmin(admin.ModelAdmin):
     def user_gender(self, obj):
         return obj.user.gender
 
+
 class RecruitmentPostInline(admin.StackedInline):
     model = RecruitmentPost
     pk_name = 'employer'
 
 
 class EmployerAdmin(admin.ModelAdmin):
-    list_display = ['id', 'position', 'companyName', 'company_type', 'user_username', 'user_mobile', 'user_email', 'user_gender', ]
-    search_fields = ['id', 'position', 'companyName', 'user__username', 'user__mobile', 'user__email',]
+    list_display = ['id', 'position', 'companyName', 'company_type', 'user_username', 'user_mobile', 'user_email',
+                    'user_gender', ]
+    search_fields = ['id', 'position', 'companyName', 'user__username', 'user__mobile', 'user__email', ]
     inlines = (RecruitmentPostInline,)
 
     def user_username(self, obj):
@@ -97,10 +107,6 @@ class EmployerAdmin(admin.ModelAdmin):
         return dict(Employer.STATUS_CHOICES)[obj.status]
 
 
-
-
-
-
 class AreaAdmin(admin.ModelAdmin):
     list_display = ['id', 'name']
     search_fields = ['id', 'name']
@@ -112,8 +118,10 @@ class EmploymentTypeAdmin(admin.ModelAdmin):
 
 
 class RecruitmentPostAdmin(admin.ModelAdmin):
-    list_display = ['id', 'title', 'deadline', 'quantity', 'career_name', 'position', 'companyName', 'employmenttype', 'gender', 'location', 'salary']
-    search_fields = ['id', 'title', 'career__name', 'position', 'employer__companyName', 'employmenttype__type','location', 'gender']
+    list_display = ['id', 'title', 'deadline', 'quantity', 'career_name', 'position', 'companyName', 'employmenttype',
+                    'gender', 'location', 'salary']
+    search_fields = ['id', 'title', 'career__name', 'position', 'employer__companyName', 'employmenttype__type',
+                     'location', 'gender']
     list_filter_horizontal = ['quantity', 'salary']
 
     def career_name(self, obj):
@@ -134,9 +142,11 @@ class SkillAdmin(admin.ModelAdmin):
 class CareerAdmin(admin.ModelAdmin):
     list_display = ['id', 'name']
 
+
 class CommentAdmin(admin.ModelAdmin):
     list_display = ['id', 'content', 'applicant_username', 'employer_username', 'interaction__recruitment__title']
     search_fields = ['id', 'applicant__user__username', 'employer__user__username']
+
     def applicant_username(self, obj):
         if obj.applicant:
             return obj.applicant.user.username
@@ -154,6 +164,7 @@ class CommentAdmin(admin.ModelAdmin):
 class RatingAdmin(admin.ModelAdmin):
     list_display = ['id', 'rating', 'applicant_username', 'employer_username', 'interaction__recruitment__title']
     search_fields = ['id', 'rating', 'applicant__user__username', 'employer__user__username']
+
     def applicant_username(self, obj):
         if obj.applicant:
             return obj.applicant.user.username
@@ -167,15 +178,38 @@ class RatingAdmin(admin.ModelAdmin):
     def interaction__recruitment__title(self, obj):
         return obj.recruitment.title
 
+
 class MyAdminSite(admin.AdminSite):
-    site_header = 'My Custom Admin'
-    site_title = 'My Custom Admin'
-    index_title = 'Welcome to My Custom Admin'
+    site_header = 'JOB MANAGEMENT SYSTEM'
+    index_title = 'Welcome to the management system'
+    site_title = 'Custom by Mtie'
+    site_url = "/"
+
+    def get_urls(self):
+        return [
+            path('stats/', self.stats_view)
+        ] + super().get_urls()
+
+    def stats_view(self, request):
+        return TemplateResponse(request, 'admin/jobStats.html', {
+            'queryset': dao.count_job_application_quarter_career()
+        })
+
 
 my_admin_site = MyAdminSite(name='myadmin')
-my_admin_site.register(RecruitmentPost, RecruitmentPostAdmin)
 
-
+my_admin_site.register(User, UserAdmin),
+my_admin_site.register(Employer, EmployerAdmin),
+my_admin_site.register(Applicant, ApplicantAdmin),
+my_admin_site.register(Area, AreaAdmin),
+my_admin_site.register(EmploymentType, EmploymentTypeAdmin),
+my_admin_site.register(RecruitmentPost, RecruitmentPostAdmin),
+my_admin_site.register(JobApplication, JobApplicationAdmin),
+my_admin_site.register(Status, StatusAdmin),
+my_admin_site.register(Skill, SkillAdmin),
+my_admin_site.register(Career, CareerAdmin),
+my_admin_site.register(Comment, CommentAdmin),
+my_admin_site.register(Rating, RatingAdmin),
 
 # Register your models here.
 admin.site.register(User, UserAdmin),
@@ -190,7 +224,3 @@ admin.site.register(Skill, SkillAdmin),
 admin.site.register(Career, CareerAdmin),
 admin.site.register(Comment, CommentAdmin),
 admin.site.register(Rating, RatingAdmin),
-
-
-
-
