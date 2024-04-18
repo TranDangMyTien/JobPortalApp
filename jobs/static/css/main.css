@@ -1,0 +1,35 @@
+
+/* Phần tiêu đề của trang */
+.admin-header {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+}
+
+
+
+
+/* Phần nội dung chính của trang */
+.admin-content {
+    background-color: #f0f0f0;
+    padding: 20px;
+}
+
+
+/* Button */
+.admin-button {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+}
+
+.admin-button:hover {
+    background-color: #0056b3;
+}
+
+body {
+    background-color: black !important;
+}

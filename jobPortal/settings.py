@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Thêm app jobs
     'jobs.apps.JobsConfig',
     'phonenumber_field',
     'debug_toolbar',

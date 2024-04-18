@@ -1,4 +1,3 @@
-import uuid
 from django.contrib.auth.models import AbstractUser
 from cloudinary.models import CloudinaryField
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -16,7 +15,7 @@ class BaseModel(models.Model):
     active = models.BooleanField(default=True)
 
     class Meta:
-        abstract = True
+        abstract = True  # Không tạo model dưới CSDL
 
 GENDER_CHOICES = (
     (0, 'Male'),
@@ -42,7 +41,7 @@ class User(AbstractUser):
     is_employer = models.BooleanField(default=False)
     is_applicant = models.BooleanField(default=False)
     class Meta:
-        ordering = ['id']
+        ordering = ['id']  # Sắp xếp theo thứ tự id tăng dần
 
 
 # Nhà tuyển dụng
@@ -192,7 +191,7 @@ class Comment(Interaction):
     def __str__(self):
         return self.content
     class Meta:
-        ordering = ['id']
+        ordering = ['id', ]
 
 class Like(Interaction):
     class Meta:
@@ -206,5 +205,5 @@ class Rating(Interaction):
         help_text="Rate from 1 to 5"
     )
     class Meta:
-        unique_together = ('applicant', 'employer', 'recruitment'),
-        ordering = ['id']
+        unique_together = ('applicant', 'employer', 'recruitment'),  # Tạo unique giữa 3 trường
+        ordering = ['id', ]
