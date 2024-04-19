@@ -39,10 +39,20 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Thêm app jobs
     'jobs.apps.JobsConfig',
+    # Phần để dùng trường PhoneNumberField
     'phonenumber_field',
+    # Phần dùng cho Debug toolbar
     'debug_toolbar',
+    # Phần CKEditor
     'ckeditor',
     'ckeditor_uploader',
+    # API
+    'rest_framework',
+    # Phần Swagger
+    'drf_yasg',
+    # Phần OAuth2
+    'oauth2_provider',
+
 ]
 
 MIDDLEWARE = [
@@ -118,6 +128,13 @@ cloudinary.config(
     api_secret="BzgebW7M-yEgHzKWgEf176-MK6I"
 
 )
+
+REST_FRAMEWORK = {
+    # Phần phân trang
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 'PAGE_SIZE' : Số Item trên 1 trang
+    'PAGE_SIZE': 6,
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
