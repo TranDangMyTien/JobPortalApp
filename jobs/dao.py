@@ -31,6 +31,19 @@ def search_salary_recruiment_post(salary):
     return RecruitmentPost.objects.filter(salary__gte=salary).order_by('-salary')
 
 
+# Tìm danh sách các bài đăng tuyển dụng được sắp xếp theo số lượng apply giảm dần
+def recruiment_posts_by_appy():
+    return RecruitmentPost.objects.filter(active=True).annotate(
+                num_applications=Count('jobapplication')).order_by('-num_applications')
+
+# Đếm số lượng đơn ứng tuyển theo mỗi bài đăng tuyển dụng (id mình nhập vào)
+def count_apply_by_id_recruiment_post(id):
+    # Lấy bài đăng tuyển dụng theo pk (primary key)
+    recruitment_post = RecruitmentPost.objects.get(pk=id)
+    # Đếm số lượng đơn ứng tuyển cho bài đăng này
+    return recruitment_post.jobapplication_set.count()  # jobapplication_set : truy vấn ngược
+
+# #################################################################################################
 
 # Đếm số lượng bài tuyển dụng của mỗi nhà tuyển dụng
 def count_recruitment_posts_per_employer():

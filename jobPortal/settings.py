@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     # Phần Swagger
     'drf_yasg',
     # Phần OAuth2
-    'oauth2_provider',
+    # 'oauth2_provider',
 
 ]
 

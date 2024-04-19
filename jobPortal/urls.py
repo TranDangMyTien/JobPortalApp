@@ -10,9 +10,9 @@ from drf_yasg import openapi
 # Phần tích hợp Swagger
 schema_view = get_schema_view(
     openapi.Info(
-        title="Course API",
+        title="JobPortal API",
         default_version='v1',
-        description="APIs for CourseApp",
+        description="APIs for JobPortalApp",
         contact=openapi.Contact(email="mytien.2682003@gmail.com"),
         license=openapi.License(name="Trần Đặng Mỹ Tiên"),
     ),
@@ -27,7 +27,19 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # Phần custom lại
     path('myadmin/', my_admin_site.urls),
+    # Phần Debug Toolbar
     path('__debug__/', include(debug_toolbar.urls)),
+    # Phần của CKEditor
     re_path(r'^ckeditor/', include('ckeditor_uploader.urls')),
+    # Phần tích hợp Swagger
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$',
+            schema_view.without_ui(cache_timeout=0),
+            name='schema-json'),
+    re_path(r'^swagger/$',
+            schema_view.with_ui('swagger', cache_timeout=0),
+            name='schema-swagger-ui'),
+    re_path(r'^redoc/$',
+            schema_view.with_ui('redoc', cache_timeout=0),
+            name='schema-redoc')
 ]
 
