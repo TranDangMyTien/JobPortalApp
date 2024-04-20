@@ -43,6 +43,36 @@ def count_apply_by_id_recruiment_post(id):
     # Đếm số lượng đơn ứng tuyển cho bài đăng này
     return recruitment_post.jobapplication_set.count()  # jobapplication_set : truy vấn ngược
 
+# Tìm danh sách các apply của một bài đăng tuyển dụng (ID mình nhập vào)
+def recruiment_posts_apply_by_ID(id):
+    # Lấy bài đăng tuyển dụng từ pk (primary key)
+    recruitment_post = RecruitmentPost.objects.get(pk=id)
+    # Lấy danh sách các ứng tuyển liên quan đến bài đăng này
+    applications = recruitment_post.jobapplication_set.all()
+    return applications
+
+# Tìm các đánh giá của một bài đăng tuyển dụng (ID mình nhập)
+def recruiment_posts_list_rating_by_ID(id):
+    # Lấy bài đăng tuyển dụng từ pk (primary key)
+    recruitment_post = RecruitmentPost.objects.get(pk=id)
+    # Lấy danh sách các đánh giá liên quan đến bài đăng này
+    ratings = recruitment_post.rating_set.all()
+    return ratings
+
+# Tìm các bình luận của một bài đăng tuyển dụng (ID mình nhập)
+def recruiment_posts_list_comment_by_ID(id):
+    # Lấy bài đăng tuyển dụng từ pk (primary key)
+    recruitment_post = RecruitmentPost.objects.get(pk=id)
+    # Lấy danh sách các đánh giá liên quan đến bài đăng này
+    comments = recruitment_post.comment_set.all()
+    return comments
+
+# Tìm bài đăng tuyển được yêu thích nhất (dựa vào lượt like)
+def recruiment_posts_most_like_first_by_ID():
+    # Lấy bài đăng tuyển dụng được sắp xếp theo số lượng lượt thích giảm dần
+    return RecruitmentPost.objects.annotate(num_likes=Count('like')).order_by('-num_likes').first()
+
+
 # #################################################################################################
 
 # Đếm số lượng bài tuyển dụng của mỗi nhà tuyển dụng

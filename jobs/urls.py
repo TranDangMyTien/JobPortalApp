@@ -10,7 +10,9 @@ router = routers.DefaultRouter()
 # views.RecruitmentPostViewSet là view set mà bạn muốn đăng ký.
 
 router.register('recruitment_post', views.RecruitmentPostViewSet, basename="recruitment_post")
-
+router.register('users', views.UserViewSet, basename='users')
+router.register('employers', views.EmployerViewSet, basename='employers')
+router.register('applicants', views.ApplicantViewSet, basename='applicants')
 urlpatterns = [
     path('', include(router.urls)),
 ]

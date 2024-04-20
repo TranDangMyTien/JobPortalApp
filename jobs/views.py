@@ -9,7 +9,7 @@ from rest_framework import viewsets, generics, permissions, status, parsers
 from rest_framework.decorators import action
 from django.db.models import Count
 from jobs import dao
-from .models import JobApplication
+from .models import JobApplication, Employer, Applicant, User
 from .serializers import JobApplicationSerializer, RatingSerializer, CommentSerializer
 
 
@@ -93,8 +93,8 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
         # Trả về queries sau khi đã thực hiện các thay đổi
         return queries
 
-    # API xem danh sách bài đăng tuyển dụng phổ biến (được apply nhiều)
-    # /recruitment_post/popular
+    # API xem danh sách bài đăng tuyển dụng phổ biến (được apply nhiều) (giảm dần theo số lượng apply)
+    # /recruitment_post/popular/
     @action(detail=False, methods=['get'])
     def popular(self, request):
         try:
@@ -123,10 +123,7 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def list_apply(self, request, pk=None):
         try:
-            # Lấy bài đăng tuyển dụng từ pk (primary key)
-            recruitment_post = RecruitmentPost.objects.get(pk=pk)
-            # Lấy danh sách các ứng tuyển liên quan đến bài đăng này
-            applications = recruitment_post.jobapplication_set.all()
+            applications = dao.recruiment_posts_apply_by_ID(pk)
             # Serialize danh sách các ứng tuyển
             serializer = JobApplicationSerializer(applications, many=True)
             # Trả về danh sách các ứng tuyển dưới dạng JSON
@@ -140,12 +137,9 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def rating(self, request, pk=None):
         try:
-            # Lấy bài đăng tuyển dụng từ pk (primary key)
-            recruitment_post = RecruitmentPost.objects.get(pk=pk)
-            # Lấy danh sách các đánh giá liên quan đến bài đăng này
-            reviews = recruitment_post.rating_set.all()
+            ratings = dao.recruiment_posts_list_rating_by_ID(pk)
             # Serialize danh sách các đánh giá
-            serializer = RatingSerializer(reviews, many=True)
+            serializer = RatingSerializer(ratings, many=True)
             # Trả về danh sách các đánh giá dưới dạng JSON
             return Response(serializer.data, status=status.HTTP_200_OK)
         except RecruitmentPost.DoesNotExist:
@@ -157,12 +151,9 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def comment(self, request, pk=None):
         try:
-            # Lấy bài đăng tuyển dụng từ pk (primary key)
-            recruitment_post = RecruitmentPost.objects.get(pk=pk)
-            # Lấy danh sách các đánh giá liên quan đến bài đăng này
-            comment = recruitment_post.comment_set.all()
+            comments = dao.recruiment_posts_list_comment_by_ID(pk)
             # Serialize danh sách các đánh giá
-            serializer = CommentSerializer(comment, many=True)
+            serializer = CommentSerializer(comments, many=True)
             # Trả về danh sách các đánh giá dưới dạng JSON
             return Response(serializer.data, status=status.HTTP_200_OK)
         except RecruitmentPost.DoesNotExist:
@@ -182,3 +173,75 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
             return Response({"count_likes": num_likes}, status=status.HTTP_200_OK)
         except RecruitmentPost.DoesNotExist:
             return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+    # Viết API xem bài đăng tuyển được yêu thích nhất (dùng first)
+    # /recruitment_post/most_liked_post/
+    @action(detail=False, methods=['get'])
+    def most_liked_post(self, request):
+        try:
+            most_liked_post = dao.recruiment_posts_most_like_first_by_ID()
+            # Serialize bài đăng được yêu thích nhất
+            serializer = serializers.RecruitmentPostSerializer(most_liked_post)
+            # Trả về kết quả
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except RecruitmentPost.DoesNotExist:
+            return Response({"error": "No recruitment post found."}, status=status.HTTP_404_NOT_FOUND)
+
+    # Viết API ẩn bài đăng tuyển dựa theo ID (người dùng nhập)
+    # /recruitment_post/pk=?/hide_post/
+    @action(detail=True, methods=['post'])
+    def hide_post(self, request, pk=None):
+        try:
+            post = RecruitmentPost.objects.get(pk=pk)
+            if request.method == 'POST':
+                post.active = False
+                post.save()
+                return Response({"message": "Recruitment post hidden successfully."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        except RecruitmentPost.DoesNotExist:
+            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    # Viết API xem bài đăng tuyển mới nhất
+    # /recruitment_post/newest/
+    @action(detail=False, methods=['get'])
+    def newest(self, request):
+        try:
+            # Lấy bài đăng tuyển mới nhất bằng cách sắp xếp theo trường created_date giảm dần và lấy bài đăng đầu tiên
+            newest_post = RecruitmentPost.objects.order_by('-created_date').first()
+            serializer = self.get_serializer(newest_post)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except RecruitmentPost.DoesNotExist:
+            return Response({"error": "No recruitment post found."}, status=status.HTTP_404_NOT_FOUND)
+
+    # API báo cáo bài đăng tuyển dụng
+    # /recruitment_post/pk=?/report/
+    @action(detail=True, methods=['post'])
+    def report(self, request, pk=None):
+        try:
+            # Lấy bài đăng tuyển dụng từ pk (primary key)
+            recruitment_post = RecruitmentPost.objects.get(pk=pk)
+            # Đánh dấu bài đăng tuyển dụng đã được báo cáo
+            recruitment_post.reported = True
+            recruitment_post.save()
+            return Response({"message": "Recruitment post reported successfully."}, status=status.HTTP_200_OK)
+        except RecruitmentPost.DoesNotExist:
+            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+class UserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
+    queryset = User.objects.filter(is_active=True).all()
+    serializer_class = serializers.UserSerializer
+
+
+class EmployerViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
+    queryset = Employer.objects.all()
+    serializer_class = serializers.EmployerSerializer
+
+
+class ApplicantViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
+    queryset = Applicant.objects.all()
+    serializer_class = serializers.ApplicantSerializer
+

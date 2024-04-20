@@ -128,6 +128,8 @@ class RecruitmentPost(BaseModel):
     description = models.TextField(null=True, blank=True)
     # Yêu cầu kinh nghiệm
     experience = models.CharField(max_length=255)
+    # Có bị báo cáo hay không
+    reported = models.BooleanField(default=False, null=True, blank=True)
     def __str__(self):
         return self.title
     class Meta:
@@ -208,3 +210,4 @@ class Rating(Interaction):
     class Meta:
         unique_together = [['applicant', 'recruitment'], ['employer', 'recruitment']]
         ordering = ['id',]
+
