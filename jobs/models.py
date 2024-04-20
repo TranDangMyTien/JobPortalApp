@@ -195,7 +195,8 @@ class Comment(Interaction):
 
 class Like(Interaction):
     class Meta:
-        unique_together = ('applicant', 'employer', 'recruitment')
+        unique_together = [['applicant', 'recruitment'], ['employer', 'recruitment']]
+        ordering = ['id', ]
 
 
 class Rating(Interaction):
@@ -205,5 +206,5 @@ class Rating(Interaction):
         help_text="Rate from 1 to 5"
     )
     class Meta:
-        unique_together = ('applicant', 'employer', 'recruitment'),  # Tạo unique giữa 3 trường
-        ordering = ['id', ]
+        unique_together = [['applicant', 'recruitment'], ['employer', 'recruitment']]
+        ordering = ['id',]

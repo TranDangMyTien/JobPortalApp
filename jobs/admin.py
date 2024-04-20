@@ -3,7 +3,7 @@ from django.template.response import TemplateResponse
 from django.utils.safestring import mark_safe
 from jobs.models import (User, Employer, Applicant, Area, EmploymentType, RecruitmentPost, JobApplication, Status,
                          Skill,
-                         Career, Comment, Rating)
+                         Career, Comment, Rating, Like)
 from django import forms
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 import cloudinary
@@ -198,6 +198,24 @@ class RatingAdmin(admin.ModelAdmin):
     def interaction__recruitment__title(self, obj):
         return obj.recruitment.title
 
+class LikeAdmin(admin.ModelAdmin):
+    list_display = ['id', 'applicant_username', 'employer_username', 'interaction__recruitment__title']
+    search_fields = ['id', 'applicant__user__username', 'employer__user__username']
+
+    def applicant_username(self, obj):
+        if obj.applicant:
+            return obj.applicant.user.username
+        return None
+
+    def employer_username(self, obj):
+        if obj.employer:
+            return obj.employer.user.username
+        return None
+
+    def interaction__recruitment__title(self, obj):
+        return obj.recruitment.title
+
+
 
 # Tạo trang admin theo cách của mình -> Ghi đè lại cái đã có
 class MyAdminSite(admin.AdminSite):
@@ -250,6 +268,7 @@ my_admin_site.register(Career, CareerAdmin),
 my_admin_site.register(Comment, CommentAdmin),
 my_admin_site.register(Rating, RatingAdmin),
 my_admin_site.register(Permission),
+my_admin_site.register(Like, LikeAdmin),
 # Register your models here.
 admin.site.register(User, UserAdmin),
 admin.site.register(Employer, EmployerAdmin),
@@ -264,3 +283,4 @@ admin.site.register(Career, CareerAdmin),
 admin.site.register(Comment, CommentAdmin),
 admin.site.register(Rating, RatingAdmin),
 admin.site.register(Permission),
+admin.site.register(Like, LikeAdmin),

@@ -10,7 +10,7 @@ from rest_framework.decorators import action
 from django.db.models import Count
 from jobs import dao
 from .models import JobApplication
-from .serializers import JobApplicationSerializer
+from .serializers import JobApplicationSerializer, RatingSerializer, CommentSerializer
 
 
 # Create your views here.
@@ -61,11 +61,11 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
 
         # PHẦN KIỀM KIẾM
         if self.action.__eq__('list'):
-            q = self.request.query_params.get('q')
+            title = self.request.query_params.get('title')
             # Nếu q khác null có nghĩa là truy vấn
-            if q:
-                # recruitment_post/?q=
-                queries = queries.filter(title__icontains=q)
+            if title:
+                # recruitment_post/?tile=
+                queries = queries.filter(title__icontains=title)
 
             employer = self.request.query_params.get('employer_id')
             if employer:
@@ -119,7 +119,7 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
 
 
     # API lấy danh sách các apply của 1 bài đăng (theo id)
-    # /recruitment_post/pk=?/list_apply
+    # /recruitment_post/pk=?/list_apply/
     @action(detail=True, methods=['get'])
     def list_apply(self, request, pk=None):
         try:
@@ -135,4 +135,50 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
             # Trả về thông báo lỗi nếu không tìm thấy bài đăng tuyển dụng
             return Response({"detail": "No RecruitmentPost matches the given query."}, status=status.HTTP_404_NOT_FOUND)
 
+    # API để xem các đánh giá của một bài đăng tuyển dựa trên id bài đăng (do người dùng nhập)
+    # /recruitment_post/pk=?/rating/
+    @action(detail=True, methods=['get'])
+    def rating(self, request, pk=None):
+        try:
+            # Lấy bài đăng tuyển dụng từ pk (primary key)
+            recruitment_post = RecruitmentPost.objects.get(pk=pk)
+            # Lấy danh sách các đánh giá liên quan đến bài đăng này
+            reviews = recruitment_post.rating_set.all()
+            # Serialize danh sách các đánh giá
+            serializer = RatingSerializer(reviews, many=True)
+            # Trả về danh sách các đánh giá dưới dạng JSON
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except RecruitmentPost.DoesNotExist:
+            # Trả về thông báo lỗi nếu không tìm thấy bài đăng tuyển dụng
+            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
 
+    # API để xem các bình luận của một bài đăng tuyển dựa trên id bài đăng (do người dùng nhập)
+    # /recruitment_post/pk=?/rating/
+    @action(detail=True, methods=['get'])
+    def comment(self, request, pk=None):
+        try:
+            # Lấy bài đăng tuyển dụng từ pk (primary key)
+            recruitment_post = RecruitmentPost.objects.get(pk=pk)
+            # Lấy danh sách các đánh giá liên quan đến bài đăng này
+            comment = recruitment_post.comment_set.all()
+            # Serialize danh sách các đánh giá
+            serializer = CommentSerializer(comment, many=True)
+            # Trả về danh sách các đánh giá dưới dạng JSON
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except RecruitmentPost.DoesNotExist:
+            # Trả về thông báo lỗi nếu không tìm thấy bài đăng tuyển dụng
+            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    # Viết API đếm xem mỗi bài đăng có bao nhiêu lượt like, dựa trên ID bài đăng (do người dùng nhập)
+    # /recruitment_post/pk=?/count_likes/
+    @action(detail=True, methods=['get'])
+    def count_likes(self, request, pk=None):
+        try:
+            # Lấy bài đăng tuyển dụng từ pk (primary key)
+            recruitment_post = RecruitmentPost.objects.get(pk=pk)
+            # Đếm số lượt like của bài đăng
+            num_likes = recruitment_post.like_set.count()
+            # Trả về kết quả
+            return Response({"count_likes": num_likes}, status=status.HTTP_200_OK)
+        except RecruitmentPost.DoesNotExist:
+            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)

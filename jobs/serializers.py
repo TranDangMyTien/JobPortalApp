@@ -97,13 +97,13 @@ class RatingSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     # Một comment cho 1 người tạo nên không gán many = True
-    # user = UserSerializer()
     employer = EmployerSerializer()
     applicant = ApplicantSerializer()
 
     class Meta:
         model = Comment
-        fields = ['id', 'content', 'created_date', 'updated_date', 'user']
+        fields = '__all__'
+
 
 
 class JobApplicationSerializer(serializers.ModelSerializer):
