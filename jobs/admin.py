@@ -157,11 +157,21 @@ class SkillAdmin(admin.ModelAdmin):
 class CareerAdmin(admin.ModelAdmin):
     list_display = ['id', 'name']
 
+class CommentInline(admin.StackedInline):
+    model = Comment  # Chỉ định rằng InlineAdmin này sẽ hiển thị các comment con của một comment cha.
+    fk_name = 'parent'  # Chỉ định khóa ngoại liên kết các comment con với comment cha là parent.
+    extra = 0  # Không hiển thị trường để thêm comment con mới khi chưa có comment cha.
+    # Chỉ định các trường sẽ hiển thị trong InlineAdmin.
+    fields = ['content', 'applicant', 'employer', 'recruitment']
+    # Đánh dấu các trường applicant, employer, recruitment chỉ để đọc, không cho phép chỉnh sửa trong InlineAdmin.
+    readonly_fields = ['recruitment']
+
 
 class CommentAdmin(admin.ModelAdmin):
     list_display = ['id', 'content', 'applicant_username', 'employer_username', 'interaction__recruitment__title']
     search_fields = ['id', 'applicant__user__username', 'employer__user__username']
     # 'applicant__user__username', 'employer__user__username' : search_fields lấy thông tin thông qua kế thừa model -> khóa ngoại -> Nơi cần lấy thông tin
+    inlines = [CommentInline]
 
     # Để cho list_display lấy thông tin: Thông qua kế thừa model -> Khóa ngoại -> Nơi cần lấy thông tin
     def applicant_username(self, obj):
