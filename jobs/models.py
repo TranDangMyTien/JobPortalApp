@@ -189,7 +189,8 @@ class Interaction(BaseModel):
 
 class Comment(Interaction):
     content = models.CharField(max_length=255)
-
+    # Tạo phần trả lời comment
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     def __str__(self):
         return self.content
     class Meta:
