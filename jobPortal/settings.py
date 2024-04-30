@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     # Phần Swagger
     'drf_yasg',
     # Phần OAuth2
-    # 'oauth2_provider',
+    'oauth2_provider',
 
 ]
 
@@ -64,6 +64,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+
 ]
 
 INTERNAL_IPS = [
@@ -134,6 +135,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     # 'PAGE_SIZE' : Số Item trên 1 trang
     'PAGE_SIZE': 6,
+
+    # Phần OAuth2
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',)
 }
 
 # Password validation
@@ -176,3 +181,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CLIENT_ID = "tyy4KAqKDflTVgAM4b2PtgpDOw6OpEzYtgiCP5jg"
+CLIENT_SECRET = "IAVEsJBqyNEpw1cKl0oylFpsCmcPKxlosLJcQXLZrpEQ8VkmXNCYUTjHdMEkfzkFj1dqroBc2eqt1Bh71XK3HMgJZcwvjaTwH1JRPOuu73ENpbcvM3Pi7w7pK0Tw4DFe"

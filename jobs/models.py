@@ -108,6 +108,7 @@ class EmploymentType(BaseModel):
 # Bài tuyển dụng
 class RecruitmentPost(BaseModel):
     employer = models.ForeignKey(Employer, models.CASCADE)
+    image = CloudinaryField('image', null=True, blank=True)
     career = models.ForeignKey('Career', on_delete=models.PROTECT, null=True)
     employmenttype = models.ForeignKey(EmploymentType, on_delete=models.PROTECT, null=True)
     # Tiêu đề
@@ -142,6 +143,7 @@ class RecruitmentPost(BaseModel):
 # Đơn xin việc
 class JobApplication(BaseModel):
     is_student = models.BooleanField(default=False, null=True)  # Thêm để thực hiện truy vấn theo bài
+    # Ngày nộp đơn xin việc
     date = models.DateTimeField(null=True)  # Thêm mới để thực hiện truy vấn theo bài
     recruitment = models.ForeignKey(RecruitmentPost, models.RESTRICT, null=True)
     applicant = models.ForeignKey(Applicant, models.RESTRICT, null=True)
@@ -211,4 +213,16 @@ class Rating(Interaction):
     class Meta:
         unique_together = [['applicant', 'recruitment'], ['employer', 'recruitment']]
         ordering = ['id',]
+
+
+# Phần thông báo
+# Thông báo cho nhà tuyển dụng có người ứng tuyển
+# Thông báo cho người xin việc là đơn xin việc đã được chấp nhận
+class Notification(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    content = models.TextField()
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):  # Trả về chuỗi đại diện
+        return f"Notification for {self.user.username}: {self.content}"
 

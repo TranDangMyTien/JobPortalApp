@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from jobs.models import (User, Applicant, Skill, Area, Career, EmploymentType, Employer, Status, RecruitmentPost,
-                         Rating, Comment, JobApplication)
+                         Rating, Comment, JobApplication, Notification)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -80,11 +80,17 @@ class StatusSerialzier(serializers.ModelSerializer):
         model = Status
         fields = '__all__'
 
-
 class RecruitmentPostSerializer(serializers.ModelSerializer):
-    employer = EmployerSerializer()
-    career = CareerSerializer()
-    employmenttype = EmploymentTypeSerializer()
+    # employer = EmployerSerializer()
+    # career = CareerSerializer()
+    # employmenttype = EmploymentTypeSerializer()
+    # Tạo đường dẫn tuyệt đối cho trường image (image upload lên Cloudinary)
+    def to_representation(self, instance):
+        req = super().to_representation(instance)
+        # Nếu ảnh khác null mới làm
+        if instance.image:
+            req['image'] = instance.image.url
+        return req
     class Meta:
         model = RecruitmentPost
         fields = '__all__'
@@ -107,9 +113,16 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class JobApplicationSerializer(serializers.ModelSerializer):
-    applicant = ApplicantSerializer()
-    status = StatusSerialzier()
-    recruitment = RecruitmentPostSerializer()
+    # applicant = ApplicantSerializer()
+    # status = StatusSerialzier()
+    # recruitment = RecruitmentPostSerializer()
     class Meta:
         model = JobApplication
+        fields = '__all__'
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    class Meta:
+        model = Notification
         fields = '__all__'

@@ -9,10 +9,14 @@ router = routers.DefaultRouter()
 # "recruitments_post" là đường dẫn URL mà view set sẽ được đăng ký vào.
 # views.RecruitmentPostViewSet là view set mà bạn muốn đăng ký.
 
-router.register('recruitment_post', views.RecruitmentPostViewSet, basename="recruitment_post")
+router.register('recruitments_post', views.RecruitmentPostViewSet, basename="recruitment_post")
 router.register('users', views.UserViewSet, basename='users')
 router.register('employers', views.EmployerViewSet, basename='employers')
 router.register('applicants', views.ApplicantViewSet, basename='applicants')
 urlpatterns = [
     path('', include(router.urls)),
+
+    # Phần OAuth2
+    path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+
 ]

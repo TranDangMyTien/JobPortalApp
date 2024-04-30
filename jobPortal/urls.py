@@ -19,6 +19,7 @@ schema_view = get_schema_view(
     public=True,
     # Cấu hình quyền được xem, AllowAny là tất cả mọi người đều được xem
     permission_classes=(permissions.AllowAny,),
+
 )
 
 
@@ -31,6 +32,9 @@ urlpatterns = [
     path('__debug__/', include(debug_toolbar.urls)),
     # Phần của CKEditor
     re_path(r'^ckeditor/', include('ckeditor_uploader.urls')),
+
+
+
     # Phần tích hợp Swagger
     re_path(r'^swagger(?P<format>\.json|\.yaml)$',
             schema_view.without_ui(cache_timeout=0),

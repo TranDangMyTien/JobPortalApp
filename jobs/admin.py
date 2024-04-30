@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.template.response import TemplateResponse
 from django.utils.safestring import mark_safe
 from jobs.models import (User, Employer, Applicant, Area, EmploymentType, RecruitmentPost, JobApplication, Status,
-                         Skill,
+                         Skill, Notification,
                          Career, Comment, Rating, Like)
 from django import forms
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
@@ -11,6 +11,7 @@ from django.urls import path
 from jobs import dao
 from django.shortcuts import render
 from django.contrib.auth.models import Permission  # Phần chứng thực
+from oauth2_provider.models import AccessToken, Application, Grant, RefreshToken, IDToken
 
 
 class JobApplicationForm(forms.ModelForm):
@@ -225,6 +226,11 @@ class LikeAdmin(admin.ModelAdmin):
     def interaction__recruitment__title(self, obj):
         return obj.recruitment.title
 
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'content', 'is_read', 'created_date']
+    list_filter_horizontal = ['is_read']
+    search_fields = ['user__username', 'content']
+
 
 
 # Tạo trang admin theo cách của mình -> Ghi đè lại cái đã có
@@ -261,6 +267,25 @@ class MyAdminSite(admin.AdminSite):
         return render(request, 'admin/search_salary.html', {})
 
 
+class GrantAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'code', 'application', 'expires', 'redirect_uri')
+
+
+class AccessTokenAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'token', 'application', 'expires', 'scope')
+
+
+class RefreshTokenAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'token', 'application', 'access_token')
+
+
+class IDTokenAdmin(admin.ModelAdmin):
+    list_display = ('id', 'application', 'user')
+
+
+class ApplicationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'client_id', 'user', 'authorization_grant_type', 'client_type')
+
 
 # Tạo đối tượng
 my_admin_site = MyAdminSite(name='myadmin')  # tạo đường dẫn myadmin thay thế cho admin hiện tại
@@ -279,6 +304,15 @@ my_admin_site.register(Comment, CommentAdmin),
 my_admin_site.register(Rating, RatingAdmin),
 my_admin_site.register(Permission),
 my_admin_site.register(Like, LikeAdmin),
+my_admin_site.register(Notification, NotificationAdmin)
+my_admin_site.register(AccessToken, AccessTokenAdmin),
+my_admin_site.register(Application, ApplicationAdmin),
+my_admin_site.register(IDToken, IDTokenAdmin),
+my_admin_site.register(Grant, GrantAdmin)
+my_admin_site.register(RefreshToken, RefreshTokenAdmin)
+
+
+
 # Register your models here.
 admin.site.register(User, UserAdmin),
 admin.site.register(Employer, EmployerAdmin),
