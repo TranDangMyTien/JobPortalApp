@@ -50,7 +50,7 @@ class UserForm(forms.ModelForm):
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'mobile', 'email', 'gender', 'is_superuser', 'is_employer', 'is_applicant']
+    list_display = ['id', 'username', 'mobile', 'email', 'gender', 'is_superuser', 'is_staff', 'is_employer', 'is_applicant']
     search_fields = ['id', 'mobile']
     readonly_fields = ['is_superuser']  # Trường is_superuser chỉ cho đọc không cho chỉnh
     form = UserForm  # Ghi đè lại form mặc định (form mình tự tạo ghi đè lên)
