@@ -17,3 +17,8 @@ class CommentReplyPaginator(PageNumberPagination):
 class RatingPaginator(PageNumberPagination):
     page_size = 10  # Số lượng rating hiển thị trên mỗi trang
     max_page_size = 20  # Số lượng rating tối đa trên mỗi trang
+
+# Phân trang cho Application
+class ApplicationPagination(PageNumberPagination):
+    page_size = 10  # Số lượng đơn ứng tuyển trên mỗi trang
+    max_page_size = 20  # Kích thước trang tối đa
