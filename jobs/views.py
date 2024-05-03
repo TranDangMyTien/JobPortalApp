@@ -6,8 +6,9 @@ from rest_framework.response import Response
 from rest_framework import viewsets, generics, permissions, status, parsers
 from rest_framework.decorators import action
 from jobs import dao
-from .models import JobApplication, Employer, Applicant, User
-from .serializers import JobApplicationSerializer, RatingSerializer, CommentSerializer, RecruitmentPostSerializer
+from .models import JobApplication, Employer, Applicant, User, Notification
+from .serializers import (JobApplicationSerializer, RatingSerializer, CommentSerializer,
+                          RecruitmentPostSerializer, JobApplicationStatusSerializer, NotificationSerializer)
 from django.shortcuts import get_object_or_404
 from datetime import datetime
 from .filters import RecruitmentPostFilter
@@ -53,70 +54,14 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
 
 
 
-    # # PHẦN LỌC DỮ LIỆU
-    # def get_queryset(self):
-    #     # queries = self.queryset: Gán self.queryset cho biến queries. self.queryset
-    #     # chứa tất cả các bài đăng tuyển dụng có trạng thái active=True.
-    #     queries = self.queryset
-    #
-    #     # LỌC CÁC BÀI ĐĂNG TUYỂN HẾT THỜI HẠN
-    #     # Vòng lặp for q in queries: Duyệt qua mỗi đối tượng RecruitmentPost trong queries
-    #     for q in queries:
-    #         #  Kiểm tra xem ngày hết hạn của RecruitmentPost (q.deadline) có nhỏ hơn hoặc bằng ngày hiện tại không.
-    #         # Điều này đảm bảo rằng chỉ có các bài đăng tuyển dụng đã hết hạn sẽ bị vô hiệu hóa.
-    #         if q.deadline <= timezone.now().date():
-    #             #  Đặt thuộc tính active của bài đăng tuyển dụng (RecruitmentPost) thành False,
-    #             #  ngăn chặn nó khỏi hiển thị trong các kết quả tìm kiếm hoặc các yêu cầu khác.
-    #             q.active = False
-    #             # Lưu thay đổi vào cơ sở dữ liệu.
-    #             q.save()
-    #         # Lọc các bài đăng đã hết hạn khỏi queries
-    #         queries = queries.filter(active=True)
-    #
-    #     # PHẦN KIỀM KIẾM
-    #     if self.action.__eq__('list'):
-    #         title = self.request.query_params.get('title')
-    #         # Nếu q khác null có nghĩa là truy vấn
-    #         if title:
-    #             # recruitments_post/?tile=
-    #             queries = queries.filter(title__icontains=title)
-    #
-    #         employer = self.request.query_params.get('employer_id')
-    #         if employer:
-    #             # Dùng employer__id: thì nó join 2 bảng lại với nhau
-    #             # Ví dụ tìm 10 lần tìm thì nó join lại 10 lần => Tốn chi phí và thời gian
-    #             # Nên dùng employer_id vì nó được chương trình sinh ra sẵn cho khóa ngoại của mỗi bảng
-    #             # Ở class RecruitmentPost có trường khóa ngoại employer => Django sinh ra 1 trường mới là employer_id
-    #             # /recruitments_post/?employer_id=
-    #             queries = queries.filter(employer_id=employer)
-    #
-    #         career = self.request.query_params.get('career')
-    #         if career:
-    #             # /recruitments_post/?career=
-    #             queries = queries.filter(career__name__icontains=career)
-    #
-    #         employment_type = self.request.query_params.get('employment_type')
-    #         if employment_type:
-    #             # /recruitments_post/?employment_type=
-    #             queries = queries.filter(employmenttype__type__icontains=employment_type)
-    #
-    #         location = self.request.query_params.get('location')
-    #         if location:
-    #             # /recruitments_post/?location=
-    #             queries = queries.filter(location__icontains=location)
-    #
-    #     page = self.paginate_queryset(queries)  # Phương thức trong DRF -> thực hiện phân trang cho một QuerySet (queries).
-    #     # Phương thức này sẽ cắt nhỏ queries thành các trang, với số lượng kết quả trên mỗi trang được xác định
-    #     # bởi thuộc tính pagination_class của view.
-    #     if page is not None:
-    #         # self.get_serializer phương thức để lấy một serializer instance dựa trên serializer_class
-    #         # đã định nghĩa trong view
-    #         # serializer sẽ được khởi tạo với page object, đại diện cho tập hợp các kết quả của trang hiện tại.
-    #         # Tham số many=True  cho biết rằng dữ liệu đầu vào cho serializer là một tập hợp các object
-    #         serializer = self.get_serializer(page, many=True)
-    #         return self.get_paginated_response(serializer.data)
-    #     # Trả về queries sau khi đã thực hiện các thay đổi
-    #     return queries
+
+    # Không endpoint
+    # Tìm kiếm các bài đăng theo tiêu đề: /recruitments_post/?title=example_title
+    # Tìm kiếm các bài đăng theo id của nhà tuyển dụng: /recruitments_post/?employer_id=example_employer_i
+    # Tìm kiếm các bài đăng theo ngành nghề: /recruitments_post/?career=example_career
+    # Tìm kiếm các bài đăng theo loại hình công việc: /recruitments_post/?employment_type=example_employment_type
+    # Tìm kiếm các bài đăng theo địa điểm: /recruitments_post/?location=example_location
+    # Tìm kiếm kết hợp các tiêu chí: /recruitments_post/?title=example_title&employer_id=example_employer_id&career=example_career
 
     def get_queryset(self):
         # Code xử lý lọc dữ liệu ở đây
@@ -160,10 +105,11 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
         return queries
 
 
+
     # API lọc bài tuyển dụng theo mức lương
     # /recruitments_post/filter_salary/?min_salary=5000000 => bài đăng có mức lương từ 5,000,000 VND trở lên
     # /recruitments_post/filter_salary/?max_salary=10000000 => bài đăng có mức lương dưới 10,000,000 VND
-    # /recruitments_post/filter_salary/?min_salary=5000000&max_salary=10000000
+    # /recruitments_post/filter_salary/?min_salary=5000000&max_salary=10000000 => bài đăng có mức lương từ 5000000 đến 10000000
     @action(detail=False, methods=['get'])
     def filter_salary(self, request):
         queryset = self.filter_queryset(self.get_queryset())
@@ -794,11 +740,19 @@ class EmployerViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveA
     serializer_class = serializers.EmployerSerializer
 
 
-class ApplicantViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
+class ApplicantViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView, generics.CreateAPIView, generics.UpdateAPIView):
     queryset = Applicant.objects.all()
     serializer_class = serializers.ApplicantSerializer
     # Thiết lập lớp phân trang (pagination class) cho một API view cụ thể.
     pagination_class = paginators.ApplicantPagination
+
+    # Không có endpoint
+    # Lấy danh sách ứng viên có kỹ năng là "Python" và "Java":
+    # /applicants/?skills=Python&skills=Java
+    # Lấy danh sách ứng viên muốn làm việc ở khu vực "quận 3":
+    # /applicants/?areas=quan3
+    # Lấy danh sách ứng viên có kỹ năng là "Python" và muốn làm việc ở khu vực "Hà Nội":
+    # /applicants/?skills=Python&areas=Hanoi
     def get_queryset(self):
         skills = self.request.query_params.getlist('skills')
         areas = self.request.query_params.getlist('areas')
@@ -808,6 +762,7 @@ class ApplicantViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Retrieve
         queryset = Applicant.objects.all()
 
         if skills:
+            # .distinct() trong Django ORM được sử dụng để loại bỏ các bản ghi trùng lặp từ kết quả truy vấn
             queryset = queryset.filter(skills__name__in=skills).distinct()
 
         if areas:
@@ -818,3 +773,59 @@ class ApplicantViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Retrieve
         if position:
             queryset = queryset.filter(position__icontains=position)
         return queryset
+
+
+
+
+    # API xem thông báo
+    # /applicants/notifications/
+    @action(detail=False, methods=['get'], url_path='notifications')
+    def get_notifications(self, request):
+        user = request.user
+
+        # Kiểm tra xem người dùng là admin hay không => admin thì xuất hết thông báo (sắp theo mới nhất)
+        if user.is_staff or user.is_superuser:
+            notifications = Notification.objects.all().order_by('-created_date')
+            serializer = NotificationSerializer(notifications, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # Nếu không phải admin, kiểm tra xem là applicant hay không
+        if not hasattr(user, 'applicant'):
+            return Response({'error': 'User is not an applicant'}, status=status.HTTP_400_BAD_REQUEST)
+
+        applicant = user.applicant
+        notifications = Notification.objects.filter(user=applicant.user).order_by('-created_date')  # (sắp theo mới nhất)
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # # API xem trạng thái của đơn ứng tuyển
+    # # /applicants/{applicant_id}/job_applications/{job_application_id}/status/
+    # @action(detail=True, methods=['get'], url_path='job_applications/(?P<job_application_id>\d+)/status')
+    # def get_job_application_status(self, request, pk=None, job_application_id=None):
+    #     try:
+    #         applicant = get_object_or_404(Applicant, pk=pk)
+    #         job_application = get_object_or_404(JobApplication, pk=job_application_id)
+    #
+    #         if job_application.applicant != applicant:
+    #             return Response({"error": "Job application does not belong to this applicant."},
+    #                             status=status.HTTP_400_BAD_REQUEST)
+    #
+    #         serializer = JobApplicationStatusSerializer(job_application)
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+    #     except Applicant.DoesNotExist:
+    #         return Response({"error": "Applicant not found."}, status=status.HTTP_404_NOT_FOUND)
+    #     except JobApplication.DoesNotExist:
+    #         return Response({"error": "Job application not found."}, status=status.HTTP_404_NOT_FOUND)
+
+# class JobApplicationViewSet(viewsets.ModelViewSet):
+#     queryset = JobApplication.objects.all()
+#     serializer_class = JobApplicationSerializer
+#
+#     def get_permissions(self):
+#         if self.action == 'create':
+#             return []  # Không cần quyền để tạo mới
+#         elif self.action in ['update', 'partial_update']:
+#             return [IsAdminUser()]  # Chỉ admin mới có quyền cập nhật
+#         else:
+#             return super().get_permissions()
+

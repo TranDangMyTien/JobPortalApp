@@ -11,3 +11,6 @@ class RecruitmentPostFilter(django_filters.FilterSet):
 
 
 
+
+
+

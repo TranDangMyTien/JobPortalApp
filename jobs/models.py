@@ -144,7 +144,7 @@ class RecruitmentPost(BaseModel):
 class JobApplication(BaseModel):
     is_student = models.BooleanField(default=False, null=True)  # Thêm để thực hiện truy vấn theo bài
     # Ngày nộp đơn xin việc
-    date = models.DateTimeField(null=True)  # Thêm mới để thực hiện truy vấn theo bài
+    date = models.DateTimeField(auto_now_add=True, null=True, blank = True)  # Thêm mới để thực hiện truy vấn theo bài
     recruitment = models.ForeignKey(RecruitmentPost, models.RESTRICT, null=True)
     applicant = models.ForeignKey(Applicant, models.RESTRICT, null=True)
     status = models.ForeignKey('Status', models.RESTRICT, null=True, default='Pending')

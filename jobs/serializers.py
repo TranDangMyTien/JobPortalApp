@@ -1,7 +1,10 @@
 from rest_framework import serializers
 from jobs.models import (User, Applicant, Skill, Area, Career, EmploymentType, Employer, Status, RecruitmentPost,
                          Rating, Comment, JobApplication, Notification)
+from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     # CHỈ ĐƯỜNG DẪN TUYỆT ĐỐI ẢNH ĐƯỢC UP TRÊN CLOUDINARY
@@ -57,7 +60,10 @@ class ApplicantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Applicant
-        fields = '__all__'
+        fields = ['id', 'user', 'position', 'skills', 'areas', 'salary_expectation', 'experience', 'cv', 'career']
+
+
+
 
 
 class EmployerSerializer(serializers.ModelSerializer):
@@ -118,7 +124,17 @@ class JobApplicationSerializer(serializers.ModelSerializer):
     # recruitment = RecruitmentPostSerializer()
     class Meta:
         model = JobApplication
-        fields = '__all__'
+        fields = ['is_student', 'recruitment', 'applicant', 'coverLetter', ]
+        read_only_fields = ['status']
+
+    def create(self, validated_data):
+        validated_data['status'] = Status.objects.get(role='Pending')
+        return super().create(validated_data)
+
+class JobApplicationStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobApplication
+        fields = ['id', 'recruitment', 'applicant', 'status', 'coverLetter', 'is_student']
 
 
 class NotificationSerializer(serializers.ModelSerializer):
@@ -126,3 +142,5 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = '__all__'
+
+
