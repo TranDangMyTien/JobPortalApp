@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'drf_yasg',
     # Phần OAuth2
     'oauth2_provider',
+    # Phần filter
+    'django_filters',
 
 ]
 

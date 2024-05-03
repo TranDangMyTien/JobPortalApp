@@ -1,18 +1,17 @@
-from django.shortcuts import render
 from jobs.models import RecruitmentPost, Comment, Rating
-from jobs import serializers
+from jobs import serializers, filters
 from jobs import paginators
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework import viewsets, generics, permissions, status, parsers
 from rest_framework.decorators import action
-from django.db.models import Count
 from jobs import dao
 from .models import JobApplication, Employer, Applicant, User
-from .serializers import JobApplicationSerializer, RatingSerializer, CommentSerializer
+from .serializers import JobApplicationSerializer, RatingSerializer, CommentSerializer, RecruitmentPostSerializer
 from django.shortcuts import get_object_or_404
 from datetime import datetime
-
+from .filters import RecruitmentPostFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 # Create your views here.
 # Làm việc với GenericViewSet
@@ -30,7 +29,7 @@ from datetime import datetime
 class RecruitmentPostViewSet(viewsets.ModelViewSet):
     # Trong Django, queryset là một biến được sử dụng trong các API view để xác định tập hợp các đối tượng dữ liệu từ cơ sở dữ liệu
     # mà API view sẽ hoạt động trên đó.
-
+    # queryset = RecruitmentPost.objects.all().order_by('id')
     queryset = RecruitmentPost.objects.filter(active=True).order_by('id')
     # Trong Django REST Framework, khi bạn thiết lập một API view, bạn cần xác định loại dữ liệu nào sẽ được sử dụng để biểu diễn dữ liệu trả về từ API đó.
     # Điều này được thực hiện thông qua việc chỉ định một lớp serializer bằng cách sử dụng thuộc tính serializer_class.
@@ -42,68 +41,142 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
     # Thiết lập lớp phân trang (pagination class) cho một API view cụ thể.
     pagination_class = paginators.RecruitmentPostPaginator
 
-    # PHẦN LỌC DỮ LIỆU
+    # Phần filter
+    # GET /recruitments_post/?min_salary=1000000:
+    # Lấy danh sách tất cả các bài đăng có mức lương yêu cầu từ 1,000,000 VND trở lên
+    # GET /recruitments_post/?max_salary=2000000:
+    # Lấy danh sách tất cả các bài đăng có mức lương yêu cầu dưới 2,000,000 VND.
+    # GET /recruitments_post/?min_salary=1000000&max_salary=2000000:
+    # Lấy danh sách các bài đăng có mức lương yêu cầu từ 1,000,000 VND đến 2,000,000 VND.
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = RecruitmentPostFilter
+
+
+
+    # # PHẦN LỌC DỮ LIỆU
+    # def get_queryset(self):
+    #     # queries = self.queryset: Gán self.queryset cho biến queries. self.queryset
+    #     # chứa tất cả các bài đăng tuyển dụng có trạng thái active=True.
+    #     queries = self.queryset
+    #
+    #     # LỌC CÁC BÀI ĐĂNG TUYỂN HẾT THỜI HẠN
+    #     # Vòng lặp for q in queries: Duyệt qua mỗi đối tượng RecruitmentPost trong queries
+    #     for q in queries:
+    #         #  Kiểm tra xem ngày hết hạn của RecruitmentPost (q.deadline) có nhỏ hơn hoặc bằng ngày hiện tại không.
+    #         # Điều này đảm bảo rằng chỉ có các bài đăng tuyển dụng đã hết hạn sẽ bị vô hiệu hóa.
+    #         if q.deadline <= timezone.now().date():
+    #             #  Đặt thuộc tính active của bài đăng tuyển dụng (RecruitmentPost) thành False,
+    #             #  ngăn chặn nó khỏi hiển thị trong các kết quả tìm kiếm hoặc các yêu cầu khác.
+    #             q.active = False
+    #             # Lưu thay đổi vào cơ sở dữ liệu.
+    #             q.save()
+    #         # Lọc các bài đăng đã hết hạn khỏi queries
+    #         queries = queries.filter(active=True)
+    #
+    #     # PHẦN KIỀM KIẾM
+    #     if self.action.__eq__('list'):
+    #         title = self.request.query_params.get('title')
+    #         # Nếu q khác null có nghĩa là truy vấn
+    #         if title:
+    #             # recruitments_post/?tile=
+    #             queries = queries.filter(title__icontains=title)
+    #
+    #         employer = self.request.query_params.get('employer_id')
+    #         if employer:
+    #             # Dùng employer__id: thì nó join 2 bảng lại với nhau
+    #             # Ví dụ tìm 10 lần tìm thì nó join lại 10 lần => Tốn chi phí và thời gian
+    #             # Nên dùng employer_id vì nó được chương trình sinh ra sẵn cho khóa ngoại của mỗi bảng
+    #             # Ở class RecruitmentPost có trường khóa ngoại employer => Django sinh ra 1 trường mới là employer_id
+    #             # /recruitments_post/?employer_id=
+    #             queries = queries.filter(employer_id=employer)
+    #
+    #         career = self.request.query_params.get('career')
+    #         if career:
+    #             # /recruitments_post/?career=
+    #             queries = queries.filter(career__name__icontains=career)
+    #
+    #         employment_type = self.request.query_params.get('employment_type')
+    #         if employment_type:
+    #             # /recruitments_post/?employment_type=
+    #             queries = queries.filter(employmenttype__type__icontains=employment_type)
+    #
+    #         location = self.request.query_params.get('location')
+    #         if location:
+    #             # /recruitments_post/?location=
+    #             queries = queries.filter(location__icontains=location)
+    #
+    #     page = self.paginate_queryset(queries)  # Phương thức trong DRF -> thực hiện phân trang cho một QuerySet (queries).
+    #     # Phương thức này sẽ cắt nhỏ queries thành các trang, với số lượng kết quả trên mỗi trang được xác định
+    #     # bởi thuộc tính pagination_class của view.
+    #     if page is not None:
+    #         # self.get_serializer phương thức để lấy một serializer instance dựa trên serializer_class
+    #         # đã định nghĩa trong view
+    #         # serializer sẽ được khởi tạo với page object, đại diện cho tập hợp các kết quả của trang hiện tại.
+    #         # Tham số many=True  cho biết rằng dữ liệu đầu vào cho serializer là một tập hợp các object
+    #         serializer = self.get_serializer(page, many=True)
+    #         return self.get_paginated_response(serializer.data)
+    #     # Trả về queries sau khi đã thực hiện các thay đổi
+    #     return queries
+
     def get_queryset(self):
-        # queries = self.queryset: Gán self.queryset cho biến queries. self.queryset
-        # chứa tất cả các bài đăng tuyển dụng có trạng thái active=True.
+        # Code xử lý lọc dữ liệu ở đây
         queries = self.queryset
 
-        # LỌC CÁC BÀI ĐĂNG TUYỂN HẾT THỜI HẠN
-        # Vòng lặp for q in queries: Duyệt qua mỗi đối tượng RecruitmentPost trong queries
+        # Lọc các bài đăng tuyển dụng đã hết thời hạn
         for q in queries:
-            #  Kiểm tra xem ngày hết hạn của RecruitmentPost (q.deadline) có nhỏ hơn hoặc bằng ngày hiện tại không.
-            # Điều này đảm bảo rằng chỉ có các bài đăng tuyển dụng đã hết hạn sẽ bị vô hiệu hóa.
             if q.deadline <= timezone.now().date():
-                #  Đặt thuộc tính active của bài đăng tuyển dụng (RecruitmentPost) thành False,
-                #  ngăn chặn nó khỏi hiển thị trong các kết quả tìm kiếm hoặc các yêu cầu khác.
                 q.active = False
-                # Lưu thay đổi vào cơ sở dữ liệu.
                 q.save()
+            queries = queries.filter(active=True)
 
-        # PHẦN KIỀM KIẾM
-        if self.action.__eq__('list'):
+        # Kiểm tra nếu hành động là 'list' (tức là yêu cầu danh sách các bài đăng)
+        if self.action == 'list':
             title = self.request.query_params.get('title')
-            # Nếu q khác null có nghĩa là truy vấn
+            employer_id = self.request.query_params.get('employer_id')
+            career = self.request.query_params.get('career')
+            employment_type = self.request.query_params.get('employment_type')
+            location = self.request.query_params.get('location')
+
+            # Lọc theo tiêu đề
             if title:
-                # recruitments_post/?tile=
                 queries = queries.filter(title__icontains=title)
 
-            employer = self.request.query_params.get('employer_id')
-            if employer:
-                # Dùng employer__id: thì nó join 2 bảng lại với nhau
-                # Ví dụ tìm 10 lần tìm thì nó join lại 10 lần => Tốn chi phí và thời gian
-                # Nên dùng employer_id vì nó được chương trình sinh ra sẵn cho khóa ngoại của mỗi bảng
-                # Ở class RecruitmentPost có trường khóa ngoại employer => Django sinh ra 1 trường mới là employer_id
-                # /recruitments_post/?employer_id=
-                queries = queries.filter(employer_id=employer)
+            # Lọc theo id của nhà tuyển dụng
+            if employer_id:
+                queries = queries.filter(employer_id=employer_id)
 
-            career = self.request.query_params.get('career')
+            # Lọc theo ngành nghề
             if career:
-                # /recruitments_post/?career=
                 queries = queries.filter(career__name__icontains=career)
 
-            employment_type = self.request.query_params.get('employment_type')
+            # Lọc theo loại hình công việc
             if employment_type:
-                # /recruitments_post/?employment_type=
                 queries = queries.filter(employmenttype__type__icontains=employment_type)
 
-            location = self.request.query_params.get('location')
+            # Lọc theo địa điểm
             if location:
-                # /recruitments_post/?location=
                 queries = queries.filter(location__icontains=location)
 
-        page = self.paginate_queryset(queries)  # Phương thức trong DRF -> thực hiện phân trang cho một QuerySet (queries).
-        # Phương thức này sẽ cắt nhỏ queries thành các trang, với số lượng kết quả trên mỗi trang được xác định
-        # bởi thuộc tính pagination_class của view.
-        if page is not None:
-            # self.get_serializer phương thức để lấy một serializer instance dựa trên serializer_class
-            # đã định nghĩa trong view
-            # serializer sẽ được khởi tạo với page object, đại diện cho tập hợp các kết quả của trang hiện tại.
-            # Tham số many=True  cho biết rằng dữ liệu đầu vào cho serializer là một tập hợp các object
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        # Trả về queries sau khi đã thực hiện các thay đổi
         return queries
+
+
+    # API lọc bài tuyển dụng theo mức lương
+    # /recruitments_post/filter_salary/?min_salary=5000000 => bài đăng có mức lương từ 5,000,000 VND trở lên
+    # /recruitments_post/filter_salary/?max_salary=10000000 => bài đăng có mức lương dưới 10,000,000 VND
+    # /recruitments_post/filter_salary/?min_salary=5000000&max_salary=10000000
+    @action(detail=False, methods=['get'])
+    def filter_salary(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        min_salary = request.query_params.get('min_salary')
+        max_salary = request.query_params.get('max_salary')
+
+        if min_salary is not None:
+            queryset = queryset.filter(salary__gte=min_salary)
+        if max_salary is not None:
+            queryset = queryset.filter(salary__lte=max_salary)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # API xem danh sách bài đăng tuyển dụng phổ biến (được apply nhiều) (giảm dần theo số lượng apply)
     # /recruitments_post/popular/
@@ -241,6 +314,20 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
             return Response({"message": "Recruitment post reported successfully."}, status=status.HTTP_200_OK)
         except RecruitmentPost.DoesNotExist:
             return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    # API xem danh sách các bài đăng tuyển dụng bị report
+    # Endpoint: /recruitments_post/list_report/
+    @action(detail=False, methods=['get'])
+    def list_report(self, request):
+        try:
+            # Lấy danh sách các bài đăng tuyển dụng bị report
+            reported_posts = RecruitmentPost.objects.filter(reported=True)
+            # Serialize danh sách các bài đăng tuyển dụng
+            serializer = RecruitmentPostSerializer(reported_posts, many=True)
+            # Trả về danh sách các bài đăng tuyển dụng dưới dạng JSON
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except RecruitmentPost.DoesNotExist:
+            return Response({"error": "No reported recruitment posts found."}, status=status.HTTP_404_NOT_FOUND)
 
     # API ứng tuyển vào một bài đăng tuyển dụng
     # /recruitments_post/<pk>/apply/
@@ -655,9 +742,51 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
             return Response({"error": "Comment or reply not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
-class UserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
+class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
     queryset = User.objects.filter(is_active=True).all()
     serializer_class = serializers.UserSerializer
+    serializer_class = serializers.UserSerializer
+    # Dùng upload ảnh lên Cloud
+    parser_classes = [parsers.MultiPartParser, ]
+
+    # API xem chi tiết tài khoản hiện (chỉ xem được của mình) + cập nhật tài khoản (của mình)
+    # /users/current-user/
+    @action(methods=['get', 'patch'], url_path='current-user', detail=False)
+    def get_current_user(self, request):
+        # Đã được chứng thực rồi thì không cần truy vấn nữa => Xác định đây là người dùng luôn
+        # user = user hiện đang đăng nhập
+        user = request.user
+        # Khi so sánh thì viết hoa hết
+        if request.method.__eq__('PATCH'):
+
+            for k, v in request.data.items():
+                # Thay vì viết user.first_name = v
+                setattr(user, k, v)
+            user.save()
+
+        return Response(serializers.UserSerializer(user).data)
+
+    # API xóa tài khoản
+    # /users/<user_id>/delete-account/
+    @action(detail=True, methods=['delete'], url_path='delete-account')
+    def delete_account(self, request, pk=None):
+        try:
+            # Lấy user từ pk hoặc raise 404 nếu không tìm thấy
+            user = get_object_or_404(User, pk=pk)
+
+            # Kiểm tra quyền hạn: Chỉ người tạo mới có quyền xóa hoặc admin
+            if request.user.is_staff or request.user == user:
+                user.delete()
+                return Response({"message": "User account deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({"error": "You do not have permission to delete this user account."},
+                                status=status.HTTP_403_FORBIDDEN)
+
+        except User.DoesNotExist:
+            return Response({"error": "User account not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+
 
 
 class EmployerViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
@@ -668,3 +797,24 @@ class EmployerViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveA
 class ApplicantViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
     queryset = Applicant.objects.all()
     serializer_class = serializers.ApplicantSerializer
+    # Thiết lập lớp phân trang (pagination class) cho một API view cụ thể.
+    pagination_class = paginators.ApplicantPagination
+    def get_queryset(self):
+        skills = self.request.query_params.getlist('skills')
+        areas = self.request.query_params.getlist('areas')
+        careers = self.request.query_params.getlist('careers')
+        position = self.request.query_params.get('position')
+
+        queryset = Applicant.objects.all()
+
+        if skills:
+            queryset = queryset.filter(skills__name__in=skills).distinct()
+
+        if areas:
+            queryset = queryset.filter(areas__name__in=areas).distinct()
+
+        if careers:
+            queryset = queryset.filter(career__name__in=careers)
+        if position:
+            queryset = queryset.filter(position__icontains=position)
+        return queryset

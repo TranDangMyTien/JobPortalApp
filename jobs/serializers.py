@@ -50,10 +50,10 @@ class CareerSerializer(serializers.ModelSerializer):
 
 
 class ApplicantSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
-    skills = SkillSerilizer(many=True)
-    areas = AreaSerilizer(many=True)
-    career = CareerSerializer()
+    # user = UserSerializer()
+    # skills = SkillSerilizer(many=True)
+    # areas = AreaSerilizer(many=True)
+    # career = CareerSerializer()
 
     class Meta:
         model = Applicant
