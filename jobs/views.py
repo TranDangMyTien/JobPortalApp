@@ -7,8 +7,8 @@ from rest_framework import viewsets, generics, permissions, status, parsers
 from rest_framework.decorators import action
 from jobs import dao
 from .models import JobApplication, Employer, Applicant, User, Notification
-from .serializers import (JobApplicationSerializer, RatingSerializer, CommentSerializer,
-                          RecruitmentPostSerializer, JobApplicationStatusSerializer, NotificationSerializer)
+from .serializers import (JobApplicationSerializer, RatingSerializer, CommentSerializer, Career, EmploymentType, Area,
+                          RecruitmentPostSerializer, JobApplicationStatusSerializer, NotificationSerializer,Skill)
 from django.shortcuts import get_object_or_404
 from datetime import datetime
 from .filters import RecruitmentPostFilter
@@ -688,17 +688,50 @@ class RecruitmentPostViewSet(viewsets.ModelViewSet):
             return Response({"error": "Comment or reply not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
-class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
+class UserViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.ListAPIView):
     queryset = User.objects.filter(is_active=True).all()
-    serializer_class = serializers.UserSerializer
     serializer_class = serializers.UserSerializer
     # Dùng upload ảnh lên Cloud
     parser_classes = [parsers.MultiPartParser, ]
 
+    def get_serializer_class(self):
+        if self.action == 'create_applicant':
+            return serializers.ApplicantCreateSerializer
+        if self.action == 'create_employer':
+            return serializers.EmployerCreateSerializer
+
+        return self.serializer_class
+
+    # # API xem chi tiết tài khoản hiện (chỉ xem được của mình) + cập nhật tài khoản (của mình)
+    # # /users/current-user/
+    # @action(methods=['get', 'patch'], url_path='current-user', detail=False)
+    # def get_current_user(self, request):
+    #     # Đã được chứng thực rồi thì không cần truy vấn nữa => Xác định đây là người dùng luôn
+    #     # user = user hiện đang đăng nhập
+    #     user = request.user
+    #     # Khi so sánh thì viết hoa hết
+    #     if request.method.__eq__('PATCH'):
+
+    #         for k, v in request.data.items():
+    #             # Thay vì viết user.first_name = v
+    #             setattr(user, k, v)
+    #         user.save()
+
+    #     return Response(serializers.UserSerializer(user).data)
+
     # API xem chi tiết tài khoản hiện (chỉ xem được của mình) + cập nhật tài khoản (của mình)
     # /users/current-user/
-    @action(methods=['get', 'patch'], url_path='current-user', detail=False)
+    @action(methods=['get'], url_path='current-user', detail=False)
     def get_current_user(self, request):
+        # Đã được chứng thực rồi thì không cần truy vấn nữa => Xác định đây là người dùng luôn
+        # user = user hiện đang đăng nhập
+        user = request.user
+
+        return Response(serializers.UserDetailSerializer(user).data)
+
+    # API cập nhật một phần cho User
+    @action(methods=['patch'], url_path='patch-current-user', detail=False)
+    def patch_current_user(self, request):
         # Đã được chứng thực rồi thì không cần truy vấn nữa => Xác định đây là người dùng luôn
         # user = user hiện đang đăng nhập
         user = request.user
@@ -711,6 +744,7 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
             user.save()
 
         return Response(serializers.UserSerializer(user).data)
+
 
     # API xóa tài khoản
     # /users/<user_id>/delete-account/
@@ -731,13 +765,69 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
         except User.DoesNotExist:
             return Response({"error": "User account not found."}, status=status.HTTP_404_NOT_FOUND)
 
+    # API tạo APPLICANT
+    # /users/<user_id>/create_applicant/
+    @action(detail=True, methods=['post'], url_path='create_applicant')
+    def create_applicant(self, request, pk=None):
+        user = get_object_or_404(User, pk=pk)
+        # if not request.user.is_authenticated:  # Nếu không được chứng thực
+        #     return Response({"error": "Authentication required."}, status=status.HTTP_401_UNAUTHORIZED)
+        # if request.user != user and not request.user.is_staff:  # Nếu không phải là admin
+        #     return Response({"error": "You do not have permission to create an applicant for this user."},
+        #                     status=status.HTTP_403_FORBIDDEN)
+
+        serializer = serializers.ApplicantCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    # /users/<user_id>/create_employer/
+    @action(detail=True, methods=['post'], url_path='create_employer')
+    def create_employer(self, request, pk=None):
+        user = get_object_or_404(User, pk=pk)
+        # if not request.user.is_authenticated:
+        #     return Response({"error": "Authentication required."}, status=status.HTTP_401_UNAUTHORIZED)
+        if not user.is_employer:
+            return Response({"error": "User is not eligible to create an employer."}, status=status.HTTP_403_FORBIDDEN)
+        # if request.user != user and not request.user.is_staff:
+        #     return Response({"error": "You do not have permission to create an employer for this user."},
+        #                     status=status.HTTP_403_FORBIDDEN)
+
+        serializer = serializers.EmployerCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
-
-class EmployerViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
+class EmployerViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView, generics.CreateAPIView, generics.UpdateAPIView):
     queryset = Employer.objects.all()
     serializer_class = serializers.EmployerSerializer
+    # permission_classes = [permissions.IsAuthenticated, IsVerifiedEmployer]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return serializers.EmployerCreateSerializer
+        return self.serializer_class
+
+    # Tạo mới Employer
+    def create(self, request, *args, **kwargs):
+        user = request.user
+
+        if not user.is_employer:
+            return Response({'detail': 'User is not a verified employer.'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=user)  # Lưu đối tượng Employer vào cơ sở dữ liệu
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 
 
 class ApplicantViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView, generics.CreateAPIView, generics.UpdateAPIView):
@@ -798,34 +888,20 @@ class ApplicantViewSet(viewsets.ViewSet, generics.ListAPIView, generics.Retrieve
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # # API xem trạng thái của đơn ứng tuyển
-    # # /applicants/{applicant_id}/job_applications/{job_application_id}/status/
-    # @action(detail=True, methods=['get'], url_path='job_applications/(?P<job_application_id>\d+)/status')
-    # def get_job_application_status(self, request, pk=None, job_application_id=None):
-    #     try:
-    #         applicant = get_object_or_404(Applicant, pk=pk)
-    #         job_application = get_object_or_404(JobApplication, pk=job_application_id)
-    #
-    #         if job_application.applicant != applicant:
-    #             return Response({"error": "Job application does not belong to this applicant."},
-    #                             status=status.HTTP_400_BAD_REQUEST)
-    #
-    #         serializer = JobApplicationStatusSerializer(job_application)
-    #         return Response(serializer.data, status=status.HTTP_200_OK)
-    #     except Applicant.DoesNotExist:
-    #         return Response({"error": "Applicant not found."}, status=status.HTTP_404_NOT_FOUND)
-    #     except JobApplication.DoesNotExist:
-    #         return Response({"error": "Job application not found."}, status=status.HTTP_404_NOT_FOUND)
 
-# class JobApplicationViewSet(viewsets.ModelViewSet):
-#     queryset = JobApplication.objects.all()
-#     serializer_class = JobApplicationSerializer
-#
-#     def get_permissions(self):
-#         if self.action == 'create':
-#             return []  # Không cần quyền để tạo mới
-#         elif self.action in ['update', 'partial_update']:
-#             return [IsAdminUser()]  # Chỉ admin mới có quyền cập nhật
-#         else:
-#             return super().get_permissions()
 
+class CareerViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
+    queryset = Career.objects.all()
+    serializer_class = serializers.CareerSerializer
+
+class EmploymentTypeViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
+    queryset = EmploymentType.objects.all()
+    serializer_class = serializers.EmploymentTypeSerializer
+
+class AreaViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
+    queryset = Area.objects.all()
+    serializer_class = serializers.AreaSerializer
+
+class SkillViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
+    queryset = Skill.objects.all()
+    serializer_class = serializers.SkillSerializer

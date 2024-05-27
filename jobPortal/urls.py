@@ -7,6 +7,8 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from drf_yasg import openapi
 
+# from jobs.views import MyTokenView
+
 # Phần tích hợp Swagger
 schema_view = get_schema_view(
     openapi.Info(
@@ -33,7 +35,7 @@ urlpatterns = [
     # Phần của CKEditor
     re_path(r'^ckeditor/', include('ckeditor_uploader.urls')),
 
-
+    # path('o/token/', MyTokenView.as_view(), name='token'),
 
     # Phần tích hợp Swagger
     re_path(r'^swagger(?P<format>\.json|\.yaml)$',

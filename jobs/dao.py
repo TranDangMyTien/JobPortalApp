@@ -15,6 +15,14 @@ def count_job_application_quarter_career():
 
     return queryset
 
+# # Đếm số đơn tuyển dụng mỗi bài đăng
+# def count_job_applications_per_recruitment():
+#     # Truy vấn đếm số đơn ứng tuyển mỗi bài đăng tuyển dụng
+#     applications_per_recruitment = JobApplication.objects.values('recruitment_id') \
+#         .annotate(total_applications=Count('id')) \
+#         .order_by('recruitment_id')
+#
+#     return applications_per_recruitment
 
 # Viết câu truy vấn đếm số lượng đơn xin việc (JobApplication) là giới tính nữ mỗi bài đăng tuyển việc làm (RecruitmentPost)
 # Kèm theo tổng số đơn xin việc của mỗi bài tuyển dụng
@@ -22,7 +30,7 @@ def recruitment_posts_with_female_applicants():
     return RecruitmentPost.objects.annotate(
         num_female_applicants=Count('jobapplication', filter=Q(jobapplication__applicant__user__gender=1)),
         # Giới tính nữ trong choices là 1
-        total_applications=Count('id'),
+        total_applications=Count('jobapplication'),
     ).values('id', 'title', 'num_female_applicants', 'total_applications')
 
 

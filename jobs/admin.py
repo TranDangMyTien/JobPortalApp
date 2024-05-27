@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.template.response import TemplateResponse
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from jobs.models import (User, Employer, Applicant, Area, EmploymentType, RecruitmentPost, JobApplication, Status,
-                         Skill, Notification,
+                         Skill, Notification, UserNotification,
                          Career, Comment, Rating, Like)
 from django import forms
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
@@ -12,6 +13,7 @@ from jobs import dao
 from django.shortcuts import render
 from django.contrib.auth.models import Permission  # Phần chứng thực
 from oauth2_provider.models import AccessToken, Application, Grant, RefreshToken, IDToken
+# from .models import User as CustomUser
 
 
 class JobApplicationForm(forms.ModelForm):
@@ -32,21 +34,44 @@ class JobApplicationAdmin(admin.ModelAdmin):
 
 # Thiết kế lại form cho model User
 class UserForm(forms.ModelForm):
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     is_superuser = cleaned_data.get('is_superuser')
+    #     is_staff = cleaned_data.get('is_staff')
+    #     is_employer = cleaned_data.get('is_employer')
+    #     is_applicant = cleaned_data.get('is_applicant')
+    #
+    #     # If the user is not a superuser or staff, ensure they select one of the roles
+    #     if not is_superuser and not is_staff:
+    #         if is_employer and is_applicant:
+    #             raise forms.ValidationError("Can only be selected as employer or applicant.")
+    #         if not is_employer and not is_applicant:
+    #             raise forms.ValidationError("Must choose whether to be the employer or the applicant.")
+    #
+    #     return cleaned_data
+
+
+    password1 = forms.CharField(label='Password', widget=forms.PasswordInput(render_value=True))
+    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput(render_value=True))
+
     class Meta:
         model = User
-        fields = '__all__'
-    # Thiết kế chỉ cho tick vào 1 trường
-    def clean(self):
-        cleaned_data = super().clean()
-        option1 = cleaned_data.get('is_employer')
-        option2 = cleaned_data.get('is_applicant')
-        if option1 and option2:
-            raise forms.ValidationError("Can only be selected as employer or applicant.")
+        fields = ('username', 'email', 'mobile', 'gender', 'is_employer', 'is_applicant', 'is_superuser')
 
-        if not option1 and not option2:
-            raise forms.ValidationError("Must choose whether to be the employer or the applicant.")
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords don't match")
+        return password2
 
-        return cleaned_data
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        if commit:
+            user.save()
+        return user
+
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -54,7 +79,6 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ['id', 'mobile']
     readonly_fields = ['is_superuser']  # Trường is_superuser chỉ cho đọc không cho chỉnh
     form = UserForm  # Ghi đè lại form mặc định (form mình tự tạo ghi đè lên)
-
     # Thiết kế để khi lick vào link url của ảnh thì có thể truy cập vào ảnh
     def avatar(self, user):
         if user.avatar:
@@ -65,12 +89,37 @@ class UserAdmin(admin.ModelAdmin):
                                                                                              alt='AvatarUser'))
 
 
+
+class ApplicantForm(forms.ModelForm):
+    class Meta:
+        model = Applicant
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        skills = cleaned_data.get('skills')
+        areas = cleaned_data.get('areas')
+
+        if skills and skills.count() > 5:
+            raise forms.ValidationError("You can select a maximum of 5 skills.")
+
+        if areas and areas.count() > 3:
+            raise forms.ValidationError("You can select a maximum of 3 areas.")
+
+        return cleaned_data
+
+# Tạo inlineModel (Từ model Applicant có thể thêm luôn JobApplication)
+class JobApplicationInline(admin.StackedInline):
+    model = JobApplication
+    pk_name = 'applicant'
+
 class ApplicantAdmin(admin.ModelAdmin):
+    form = ApplicantForm
     list_display = ['id', 'position', 'career', 'user_username', 'user_mobile', 'user_email', 'user_gender',
                     'salary_expectation']
     search_fields = ['id', 'position', 'career__name', 'user__username', 'user__mobile', 'user__email', ]
     list_filter_horizontal = ['salary_expectation', ]
-
+    inlines = (JobApplicationInline,)
     # Để cho list_display lấy thông tin
     def career(self, obj):
         return obj.career.name
@@ -135,7 +184,7 @@ class EmploymentTypeAdmin(admin.ModelAdmin):
 
 class RecruitmentPostAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'deadline', 'quantity', 'career_name', 'position', 'companyName', 'employmenttype',
-                    'gender', 'location', 'salary']
+                    'gender', 'location', 'salary', 'reported']
     search_fields = ['id', 'title', 'career__name', 'position', 'employer__companyName', 'employmenttype__type',
                      'location', 'gender']
     list_filter_horizontal = ['quantity', 'salary']  # Lọc theo chiều ngang => Không hiện thanh kéo
@@ -145,6 +194,29 @@ class RecruitmentPostAdmin(admin.ModelAdmin):
 
     def companyName(self, obj):
         return obj.employer.companyName
+
+    # Custom function để hiển thị trạng thái reported
+    def reported(self, obj):
+        if obj.reported:
+            return format_html(
+                '<span style="color:red;">Yes</span>')  # Nếu bài đăng bị báo cáo, hiển thị "Yes" với màu đỏ
+        else:
+            return format_html(
+                '<span style="color:green;">No</span>')  # Nếu bài đăng không bị báo cáo, hiển thị "No" với màu xanh lá cây
+
+    reported.short_description = 'Reported'  # Đặt tên cho cột "Reported" trong trang quản trị
+    reported.admin_order_field = 'reported'  # Cho phép sắp xếp bài đăng theo trạng thái reported
+
+    # Phần tìm kiếm lương lớn hơn hoặc bằng
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+
+        # Nếu có mức lương được nhập vào trong thanh tìm kiếm
+        if search_term.isdigit():
+            salary = int(search_term)
+            queryset |= self.model.objects.filter(salary__gte=salary)
+
+        return queryset, use_distinct
 
 
 class StatusAdmin(admin.ModelAdmin):
@@ -227,10 +299,13 @@ class LikeAdmin(admin.ModelAdmin):
         return obj.recruitment.title
 
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'content', 'is_read', 'created_date']
-    list_filter_horizontal = ['is_read']
-    search_fields = ['user__username', 'content']
+    list_display = ['id', 'content', 'created_date']
+    search_fields = ['content']
 
+class UserNotificationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'notification', 'is_read')
+    list_filter = ('is_read',)
+    search_fields = ('user__username', 'notification__content')
 
 
 # Tạo trang admin theo cách của mình -> Ghi đè lại cái đã có
@@ -251,6 +326,7 @@ class MyAdminSite(admin.AdminSite):
     def stats_view(self, request):
         return TemplateResponse(request, 'admin/jobStats.html', {
             'queryset': dao.count_job_application_quarter_career(),
+
             'femaleApply': dao.recruitment_posts_with_female_applicants(),
         })
 
@@ -310,6 +386,8 @@ my_admin_site.register(Application, ApplicationAdmin),
 my_admin_site.register(IDToken, IDTokenAdmin),
 my_admin_site.register(Grant, GrantAdmin)
 my_admin_site.register(RefreshToken, RefreshTokenAdmin)
+my_admin_site.register(UserNotification, UserNotificationAdmin)
+
 
 
 

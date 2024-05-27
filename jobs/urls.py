@@ -13,6 +13,12 @@ router.register('recruitments_post', views.RecruitmentPostViewSet, basename="rec
 router.register('users', views.UserViewSet, basename='users')
 router.register('employers', views.EmployerViewSet, basename='employers')
 router.register('applicants', views.ApplicantViewSet, basename='applicants')
+router.register('careers', views.CareerViewSet, basename='careers')
+router.register('employmenttypes', views.EmploymentTypeViewSet, basename='employmenttypes')
+router.register('areas', views.AreaViewSet, basename='areas')
+router.register('skills', views.SkillViewSet, basename='skills')
+
+
 urlpatterns = [
     path('', include(router.urls)),
 

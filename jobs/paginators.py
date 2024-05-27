@@ -1,7 +1,7 @@
 from rest_framework.pagination import PageNumberPagination
 
 class RecruitmentPostPaginator(PageNumberPagination):
-    page_size = 20  # Mỗi trang sẽ chứa tối đa 20 bài đăng tuyển dụng.
+    page_size = 10  # Mỗi trang sẽ chứa tối đa 20 bài đăng tuyển dụng.
 
 # Phân trang cho Comment
 class CommentPaginator(PageNumberPagination):

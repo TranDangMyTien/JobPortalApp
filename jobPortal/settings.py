@@ -133,14 +133,19 @@ cloudinary.config(
 )
 
 REST_FRAMEWORK = {
-    # Phần phân trang
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    # 'PAGE_SIZE' : Số Item trên 1 trang
-    'PAGE_SIZE': 6,
+    # # Phần phân trang
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # # 'PAGE_SIZE' : Số Item trên 1 trang
+    # 'PAGE_SIZE': 6,
 
     # Phần OAuth2
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',)
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',),
+
+    # # Ai cũng có thể truy cập
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.AllowAny',
+    # ),
 }
 
 # Password validation
@@ -184,5 +189,15 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+OAUTH2_PROVIDER = {
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 36000,
+    'AUTHORIZATION_CODE_EXPIRE_SECONDS': 600,
+    'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+    },
+}
+# OAUTH2_PROVIDER = { 'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore' }
 CLIENT_ID = "tyy4KAqKDflTVgAM4b2PtgpDOw6OpEzYtgiCP5jg"
 CLIENT_SECRET = "IAVEsJBqyNEpw1cKl0oylFpsCmcPKxlosLJcQXLZrpEQ8VkmXNCYUTjHdMEkfzkFj1dqroBc2eqt1Bh71XK3HMgJZcwvjaTwH1JRPOuu73ENpbcvM3Pi7w7pK0Tw4DFe"

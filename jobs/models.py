@@ -1,3 +1,4 @@
+from datetime import timezone
 from django.contrib.auth.models import AbstractUser
 from cloudinary.models import CloudinaryField
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -39,7 +40,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, null=True, blank=True)
     gender = models.IntegerField(choices=GENDER_CHOICES, null=True, blank=True)
     is_employer = models.BooleanField(default=False)
-    is_applicant = models.BooleanField(default=False)
+    is_applicant = models.BooleanField(default=True)
     class Meta:
         ordering = ['id']  # Sắp xếp theo thứ tự id tăng dần
 
@@ -71,9 +72,9 @@ class Applicant(models.Model):
     # Vị trí muốn ứng tuyển
     position = models.CharField(max_length=255, null=True, blank=True)
     # Các kỹ năng làm việc
-    skills = models.ManyToManyField('Skill')
+    skills = models.ManyToManyField('Skill', blank=True)
     # Khu vực muốn làm việc
-    areas = models.ManyToManyField('Area')
+    areas = models.ManyToManyField('Area', blank=True)
     # Mức lương mong muốn
     salary_expectation = models.IntegerField()
     # Kinh nghiệm làm việc
@@ -96,10 +97,10 @@ class Area(models.Model):
         return self.name
 
 # Loại công việc
-class EmploymentType(BaseModel):
+class EmploymentType(models.Model):
 
     type = models.CharField(max_length=100, unique=True, null=True, blank=True)
-    # full_time; part_time; internship
+    # Full-time; Part-time; Internship
     def __str__(self):
         return self.type
     class Meta:
@@ -111,6 +112,7 @@ class RecruitmentPost(BaseModel):
     image = CloudinaryField('image', null=True, blank=True)
     career = models.ForeignKey('Career', on_delete=models.PROTECT, null=True)
     employmenttype = models.ForeignKey(EmploymentType, on_delete=models.PROTECT, null=True)
+    area = models.ForeignKey('Area', models.RESTRICT, null=True)
     # Tiêu đề
     title = models.CharField(max_length=255)
     # Ngày hết hạn
@@ -131,20 +133,27 @@ class RecruitmentPost(BaseModel):
     experience = models.CharField(max_length=255)
     # Có bị báo cáo hay không
     reported = models.BooleanField(default=False, null=True, blank=True)
+    # # Lưu bài đăng
+    # saved = models.BooleanField(default=False, null=True, blank=True)
+
     def __str__(self):
         return self.title
     class Meta:
         unique_together = ('employer', 'title')
-        ordering = ['-created_date', 'id']
+        ordering = ['deadline', 'id']
 
-
+class SavedPost(BaseModel):
+    # Model cho các bài đăng được người dùng lưu
+    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE)
+    requirement_post = models.ForeignKey(RecruitmentPost, on_delete=models.CASCADE)
+    saved_at = models.DateTimeField(auto_now_add=True)
 
 
 # Đơn xin việc
 class JobApplication(BaseModel):
     is_student = models.BooleanField(default=False, null=True)  # Thêm để thực hiện truy vấn theo bài
     # Ngày nộp đơn xin việc
-    date = models.DateTimeField(auto_now_add=True, null=True, blank = True)  # Thêm mới để thực hiện truy vấn theo bài
+    date = models.DateTimeField(auto_now_add=True, blank=True, null=True)  # Thêm mới để thực hiện truy vấn theo bài
     recruitment = models.ForeignKey(RecruitmentPost, models.RESTRICT, null=True)
     applicant = models.ForeignKey(Applicant, models.RESTRICT, null=True)
     status = models.ForeignKey('Status', models.RESTRICT, null=True, default='Pending')
@@ -157,7 +166,7 @@ class JobApplication(BaseModel):
 
 
 
-class Status(BaseModel):
+class Status(models.Model):
     # Pending; Accepted; Rejected
     role = models.CharField(max_length=255, unique=True, null=True, blank=True)
     def __str__(self):
@@ -219,10 +228,18 @@ class Rating(Interaction):
 # Thông báo cho nhà tuyển dụng có người ứng tuyển
 # Thông báo cho người xin việc là đơn xin việc đã được chấp nhận
 class Notification(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    # Model cho thông báo
     content = models.TextField()
+
+    def __str__(self):
+        return self.content
+
+
+class UserNotification(models.Model):
+    # Bảng trung gian kết nối User và Notification
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    notification = models.ForeignKey(Notification, on_delete=models.CASCADE)
     is_read = models.BooleanField(default=False)
 
-    def __str__(self):  # Trả về chuỗi đại diện
-        return f"Notification for {self.user.username}: {self.content}"
-
+    def __str__(self):
+        return f" Notification for {self.user.username}: {self.notification.content}"
