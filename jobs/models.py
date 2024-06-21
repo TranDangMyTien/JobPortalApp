@@ -1,4 +1,3 @@
-from datetime import timezone
 from django.contrib.auth.models import AbstractUser
 from cloudinary.models import CloudinaryField
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -37,7 +36,7 @@ COMPANY_CHOICES = (
 class User(AbstractUser):
     avatar = CloudinaryField('avatar', null=True, blank=True)
     mobile = PhoneNumberField(region="VN", null=True, blank=True)
-    email = models.EmailField(unique=True, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
     gender = models.IntegerField(choices=GENDER_CHOICES, null=True, blank=True)
     is_employer = models.BooleanField(default=False)
     is_applicant = models.BooleanField(default=True)
@@ -57,7 +56,7 @@ class Employer(models.Model):
     # Vị trí người tuyển dụng
     position = models.CharField(max_length=255, null=True, blank=True)
     # Website thông tin công ty, dùng URLField
-    company_website = models.URLField()
+    company_website = models.URLField(blank=True)
     # Loại hình công ty (công ty TNHH, công ty cổ phần, v.v)
     company_type = models.IntegerField(choices=COMPANY_CHOICES, null=True, blank=True)
     # Ngành nghề hoạt động
@@ -97,7 +96,7 @@ class Area(models.Model):
         return self.name
 
 # Loại công việc
-class EmploymentType(models.Model):
+class EmploymentType(BaseModel):
 
     type = models.CharField(max_length=100, unique=True, null=True, blank=True)
     # Full-time; Part-time; Internship
@@ -112,7 +111,7 @@ class RecruitmentPost(BaseModel):
     image = CloudinaryField('image', null=True, blank=True)
     career = models.ForeignKey('Career', on_delete=models.PROTECT, null=True)
     employmenttype = models.ForeignKey(EmploymentType, on_delete=models.PROTECT, null=True)
-    area = models.ForeignKey('Area', models.RESTRICT, null=True)
+    area = models.ForeignKey(Area, models.RESTRICT, null=True)
     # Tiêu đề
     title = models.CharField(max_length=255)
     # Ngày hết hạn
@@ -137,7 +136,8 @@ class RecruitmentPost(BaseModel):
     # saved = models.BooleanField(default=False, null=True, blank=True)
 
     def __str__(self):
-        return self.title
+        return f'{self.id} - {self.title}'
+
     class Meta:
         unique_together = ('employer', 'title')
         ordering = ['deadline', 'id']
@@ -166,7 +166,7 @@ class JobApplication(BaseModel):
 
 
 
-class Status(models.Model):
+class Status(BaseModel):
     # Pending; Accepted; Rejected
     role = models.CharField(max_length=255, unique=True, null=True, blank=True)
     def __str__(self):
@@ -189,13 +189,14 @@ class Career(models.Model):
 
 # Tương tác
 class Interaction(BaseModel):
-    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE, null=True, blank=True)
-    employer = models.ForeignKey(Employer, on_delete=models.CASCADE, null=True, blank=True)
+    # applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE, null=True, blank=True)
+    # employer = models.ForeignKey(Employer, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     recruitment = models.ForeignKey(RecruitmentPost, on_delete=models.CASCADE, null=True )
     class Meta:
         abstract = True
     def __str__(self):
-        return f'{self.applicant_id} - {self.employer_id} - {self.recruitment_id}'
+        return f'{self.user.username} - {self.recruitment_id}'
 
 
 class Comment(Interaction):
@@ -203,13 +204,15 @@ class Comment(Interaction):
     # Tạo phần trả lời comment
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     def __str__(self):
-        return self.content
+        # return self.content
+        return f'{self.user_id} - {self.content}'
     class Meta:
         ordering = ['id', ]
 
 class Like(Interaction):
     class Meta:
-        unique_together = [['applicant', 'recruitment'], ['employer', 'recruitment']]
+        # unique_together = [['applicant', 'recruitment'], ['employer', 'recruitment']]
+        unique_together = ['user', 'recruitment']
         ordering = ['id', ]
 
 
@@ -220,7 +223,8 @@ class Rating(Interaction):
         help_text="Rate from 1 to 5"
     )
     class Meta:
-        unique_together = [['applicant', 'recruitment'], ['employer', 'recruitment']]
+        # unique_together = [['applicant', 'recruitment'], ['employer', 'recruitment']]
+        unique_together = ['user', 'recruitment']
         ordering = ['id',]
 
 

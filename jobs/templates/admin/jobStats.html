@@ -17,6 +17,7 @@ Thống kê | By Mtie
 
     h1 {
         margin-bottom: 20px;
+        text-align: center; /* Add this line */
     }
 
     table {
@@ -49,7 +50,7 @@ Thống kê | By Mtie
 
 
 {% block content %}
-<h1>THỐNG KÊ - BÁO CÁO ĐƠN ỨNG TUYỂN TRÊN HỆ THỐNG</h1>
+<h1 class="center-text" >THỐNG KÊ - BÁO CÁO ĐƠN ỨNG TUYỂN TRÊN HỆ THỐNG</h1>
 
 
 <div class="quarterly-report">
@@ -112,19 +113,21 @@ Thống kê | By Mtie
        var chartData = {
            labels: [{% for item in queryset %}"{{ item.recruitment__career__name }} - Q{{ item.quarter }} {{ item.year }}",{% endfor %}],
            datasets: [{
-              label: 'Total Applications',
+              label: 'Student job applications',
               data: [{% for item in queryset %}{{ item.total_applications }},{% endfor %}],
               backgroundColor: [
-<!--                   'rgba(255, 159, 64, 0.2)',-->
-<!--                   'rgba(153, 102, 255, 0.2)',-->
-<!--                   'rgba(75, 192, 192, 0.2)',-->
-                   'rgba(54, 162, 235, 0.2)',
+                //   'rgba(255, 159, 64, 0.2)',
+                //   'rgba(153, 102, 255, 0.2)',
+                //   'rgba(75, 192, 192, 0.2)',
+                //   'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
                ],
                borderColor: [
-<!--                   'rgba(255, 159, 64, 1)',-->
-<!--                   'rgba(153, 102, 255, 1)',-->
-<!--                   'rgba(75, 192, 192, 1)',-->
-                   'rgba(54, 162, 235, 0.2)',
+                //   'rgba(255, 159, 64, 1)',
+                //   'rgba(153, 102, 255, 1)',
+                //   'rgba(75, 192, 192, 1)',
+                //   'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 159, 64, 1)'
                ],
                borderWidth: 1
            }]

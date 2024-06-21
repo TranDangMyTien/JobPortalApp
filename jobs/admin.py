@@ -13,8 +13,9 @@ from jobs import dao
 from django.shortcuts import render
 from django.contrib.auth.models import Permission  # Phần chứng thực
 from oauth2_provider.models import AccessToken, Application, Grant, RefreshToken, IDToken
-# from .models import User as CustomUser
-
+from django.contrib.auth.decorators import user_passes_test
+from django.utils.decorators import method_decorator
+from django.core.mail import send_mail
 
 class JobApplicationForm(forms.ModelForm):
     coverLetter = forms.CharField(widget=CKEditorUploadingWidget)  # Để upload ảnh ở CKEditor
@@ -40,23 +41,23 @@ class UserForm(forms.ModelForm):
     #     is_staff = cleaned_data.get('is_staff')
     #     is_employer = cleaned_data.get('is_employer')
     #     is_applicant = cleaned_data.get('is_applicant')
-    #
+
     #     # If the user is not a superuser or staff, ensure they select one of the roles
     #     if not is_superuser and not is_staff:
     #         if is_employer and is_applicant:
     #             raise forms.ValidationError("Can only be selected as employer or applicant.")
     #         if not is_employer and not is_applicant:
     #             raise forms.ValidationError("Must choose whether to be the employer or the applicant.")
-    #
+
     #     return cleaned_data
-
-
-    password1 = forms.CharField(label='Password', widget=forms.PasswordInput(render_value=True))
-    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput(render_value=True))
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'mobile', 'gender', 'is_employer', 'is_applicant', 'is_superuser')
+        fields = ('username', 'email', 'mobile', 'gender', 'is_employer', 'is_applicant','is_staff','is_superuser', 'avatar')
+
+    password1 = forms.CharField(label='Password', widget=forms.PasswordInput(render_value=True), required=False)
+    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput(render_value=True), required=False)
+
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
@@ -73,12 +74,12 @@ class UserForm(forms.ModelForm):
         return user
 
 
-
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'mobile', 'email', 'gender', 'is_superuser', 'is_staff', 'is_employer', 'is_applicant']
+    list_display = ['id', 'username', 'mobile', 'email', 'gender', 'is_superuser', 'is_staff', 'is_employer', 'is_applicant', ]
     search_fields = ['id', 'mobile']
-    readonly_fields = ['is_superuser']  # Trường is_superuser chỉ cho đọc không cho chỉnh
+    readonly_fields = ['is_superuser', 'is_staff']  # Trường is_superuser chỉ cho đọc không cho chỉnh
     form = UserForm  # Ghi đè lại form mặc định (form mình tự tạo ghi đè lên)
+
     # Thiết kế để khi lick vào link url của ảnh thì có thể truy cập vào ảnh
     def avatar(self, user):
         if user.avatar:
@@ -87,7 +88,6 @@ class UserAdmin(admin.ModelAdmin):
                     "<img src='{img_url}' alt='{alt}' width=120px/>".format(img_url=user.avatar.url, alt='AvatarUser'))
             return mark_safe("<img src='/static/{img_url}' alt='{alt}' width=120px/>".format(img_url=user.avatar.name,
                                                                                              alt='AvatarUser'))
-
 
 
 class ApplicantForm(forms.ModelForm):
@@ -113,32 +113,35 @@ class JobApplicationInline(admin.StackedInline):
     model = JobApplication
     pk_name = 'applicant'
 
+
 class ApplicantAdmin(admin.ModelAdmin):
     form = ApplicantForm
-    list_display = ['id', 'position', 'career', 'user_username', 'user_mobile', 'user_email', 'user_gender',
-                    'salary_expectation']
+    list_display = ['id', 'position', 'career', 'user_username', 'user_mobile', 'user_email', 'get_user_gender_display', 'salary_expectation']
     search_fields = ['id', 'position', 'career__name', 'user__username', 'user__mobile', 'user__email', ]
     list_filter_horizontal = ['salary_expectation', ]
     inlines = (JobApplicationInline,)
-    # Để cho list_display lấy thông tin
-    def career(self, obj):
-        return obj.career.name
 
-    # Để cho list_display lấy thông tin
+    def career(self, obj):
+        return obj.career.name if obj.career else '-'
+
     def user_username(self, obj):
         return obj.user.username
 
-    # Để cho list_display lấy thông tin
     def user_mobile(self, obj):
         return obj.user.mobile
 
-    # Để cho list_display lấy thông tin
     def user_email(self, obj):
         return obj.user.email
 
-    # Để cho list_display lấy thông tin
-    def user_gender(self, obj):
-        return obj.user.gender
+    def get_user_gender_display(self, obj):
+        return obj.user.get_gender_display()
+
+    career.admin_order_field = 'career__name'
+    user_username.admin_order_field = 'user__username'
+    user_mobile.admin_order_field = 'user__mobile'
+    user_email.admin_order_field = 'user__email'
+    get_user_gender_display.short_description = 'Gender' # Chuyển đổi tên cho ngắn gọn
+
 
 
 
@@ -149,10 +152,8 @@ class RecruitmentPostInline(admin.StackedInline):
 
 
 class EmployerAdmin(admin.ModelAdmin):
-    list_display = ['id', 'position', 'companyName', 'company_type', 'user_username', 'user_mobile', 'user_email',
-                    'user_gender', ]
-    search_fields = ['id', 'position', 'companyName', 'user__username', 'user__mobile', 'user__email', ]
-    # Thêm vào để có thể tạo inlineModel
+    list_display = ['id', 'position', 'companyName', 'company_type', 'user_username', 'user_mobile', 'user_email', 'get_user_gender_display']
+    search_fields = ['id', 'position', 'companyName', 'user__username', 'user__mobile', 'user__email']
     inlines = (RecruitmentPostInline,)
 
     def user_username(self, obj):
@@ -164,12 +165,16 @@ class EmployerAdmin(admin.ModelAdmin):
     def user_email(self, obj):
         return obj.user.email
 
-    def user_gender(self, obj):
-        return obj.user.gender
+    def get_user_gender_display(self, obj):
+        return obj.user.get_gender_display()
 
-    # Để cho list_display lấy thông tin
     def company_type(self, obj):
         return dict(Employer.STATUS_CHOICES)[obj.status]
+
+    user_username.admin_order_field = 'user__username'
+    user_mobile.admin_order_field = 'user__mobile'
+    user_email.admin_order_field = 'user__email'
+    get_user_gender_display.short_description = 'Gender'
 
 
 class AreaAdmin(admin.ModelAdmin):
@@ -235,47 +240,55 @@ class CommentInline(admin.StackedInline):
     fk_name = 'parent'  # Chỉ định khóa ngoại liên kết các comment con với comment cha là parent.
     extra = 0  # Không hiển thị trường để thêm comment con mới khi chưa có comment cha.
     # Chỉ định các trường sẽ hiển thị trong InlineAdmin.
-    fields = ['content', 'applicant', 'employer', 'recruitment']
+    fields = ['content', 'user', 'recruitment']
     # Đánh dấu các trường applicant, employer, recruitment chỉ để đọc, không cho phép chỉnh sửa trong InlineAdmin.
     readonly_fields = ['recruitment']
 
 
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'content', 'applicant_username', 'employer_username', 'interaction__recruitment__title']
-    search_fields = ['id', 'applicant__user__username', 'employer__user__username']
-    # 'applicant__user__username', 'employer__user__username' : search_fields lấy thông tin thông qua kế thừa model -> khóa ngoại -> Nơi cần lấy thông tin
+    list_display = ['id', 'content','interaction__user__username', 'interaction__recruitment__title','parent__interaction__user__username','parent__interaction__recruitment__title']
+    search_fields = ['id', 'user__username']
+    # 'user__username' : search_fields lấy thông tin thông qua kế thừa model -> khóa ngoại -> Nơi cần lấy thông tin
     inlines = [CommentInline]
 
     # Để cho list_display lấy thông tin: Thông qua kế thừa model -> Khóa ngoại -> Nơi cần lấy thông tin
-    def applicant_username(self, obj):
-        if obj.applicant:
-            return obj.applicant.user.username
+    def interaction__user__username(self, obj):
+        if obj.user:
+            return obj.user.username
         return None
 
-    # Vì lấy chung thông tin tới User nên phải viết thêm 1 hàm def
-    # Để cho list_display lấy thông tin: Thông qua kế thừa model -> Khóa ngoại -> Nơi cần lấy thông tin
-    def employer_username(self, obj):
-        if obj.employer:
-            return obj.employer.user.username
+    # # Vì lấy chung thông tin tới User nên phải viết thêm 1 hàm def
+    # # Để cho list_display lấy thông tin: Thông qua kế thừa model -> Khóa ngoại -> Nơi cần lấy thông tin
+    # def employer_username(self, obj):
+    #     if obj.employer:
+    #         return obj.employer.user.username
+    #     return None
+
+    def parent__interaction__user__username(self, obj):
+        if obj.parent:
+            return obj.parent.user.username
+        return None
+
+    def parent__interaction__recruitment__title(self, obj):
+        if obj.parent:
+            return obj.parent.recruitment.title
         return None
 
     # Để cho list_display lấy thông tin: Thông qua kế thừa model -> Khóa ngoại -> Nơi lấy thông tin
     def interaction__recruitment__title(self, obj):
-        return obj.recruitment.title
+        if obj.recruitment:
+            return obj.recruitment.title
+        return None
+
 
 
 class RatingAdmin(admin.ModelAdmin):
-    list_display = ['id', 'rating', 'applicant_username', 'employer_username', 'interaction__recruitment__title']
-    search_fields = ['id', 'rating', 'applicant__user__username', 'employer__user__username']
+    list_display = ['id', 'rating', 'user_username', 'interaction__recruitment__title']
+    search_fields = ['id', 'rating', 'user__username', 'user__username']
 
-    def applicant_username(self, obj):
-        if obj.applicant:
-            return obj.applicant.user.username
-        return None
-
-    def employer_username(self, obj):
-        if obj.employer:
-            return obj.employer.user.username
+    def user_username(self, obj):
+        if obj.user:
+            return obj.user.username
         return None
 
     def interaction__recruitment__title(self, obj):
@@ -307,10 +320,13 @@ class UserNotificationAdmin(admin.ModelAdmin):
     list_filter = ('is_read',)
     search_fields = ('user__username', 'notification__content')
 
+# Hàm kiểm tra tùy chỉnh để xác định người dùng có phải là admin không
+def is_admin(user):
+    return user.is_superuser or user.is_staff
 
 # Tạo trang admin theo cách của mình -> Ghi đè lại cái đã có
 class MyAdminSite(admin.AdminSite):
-    site_header = 'JOB MANAGEMENT SYSTEM'
+    site_header = 'OU JOB MANAGEMENT SYSTEM'
     index_title = 'Welcome to the management system'
     site_title = 'Custom by Mtie'
     site_url = "/"
@@ -320,17 +336,42 @@ class MyAdminSite(admin.AdminSite):
         return [
             path('stats/', self.stats_view),   # => myadmin/stats, myadmin là cái tạo phía dưới
             path('search/', self.search_by_salary),  # => myadmin/search, myadmin là cái tạo phía dưới
+            path('mail/', self.mail_view)
         ] + super().get_urls()
-
+    # Bộ trang trí phương thức để giới hạn quyền truy cập vào stats_view
+    @method_decorator(user_passes_test(is_admin))
     # Cái này dẫn tới folder templates/
     def stats_view(self, request):
         return TemplateResponse(request, 'admin/jobStats.html', {
             'queryset': dao.count_job_application_quarter_career(),
-
             'femaleApply': dao.recruitment_posts_with_female_applicants(),
         })
+    @method_decorator(user_passes_test(is_admin))
+    def mail_view(self, request):
+        if request.method == 'POST':
+            name = request.POST.get('full-name')
+            subject = request.POST.get('subject')
+            message = request.POST.get('message')
+            recipient_email = request.POST.get('recipient-email')  # Lấy địa chỉ email người nhận từ form
+
+            data = {
+                'name': name,
+                'subject': subject,
+                'message': message
+            }
+
+            message_content = '''
+            New message: {}
+            From: {}
+            '''.format(data['message'], data['name'])
+
+            send_mail(data['subject'], message_content, '',
+                      [recipient_email])  # Gửi email đến địa chỉ người nhận từ form
+
+        return render(request, 'admin/mail.html', {})
 
     # Cái này dẫn tới folder templates/
+    @method_decorator(user_passes_test(is_admin))
     def search_by_salary(self, request):
         if request.method == 'GET':
             salary = request.GET.get('salary')
@@ -391,18 +432,18 @@ my_admin_site.register(UserNotification, UserNotificationAdmin)
 
 
 
-# Register your models here.
-admin.site.register(User, UserAdmin),
-admin.site.register(Employer, EmployerAdmin),
-admin.site.register(Applicant, ApplicantAdmin),
-admin.site.register(Area, AreaAdmin),
-admin.site.register(EmploymentType, EmploymentTypeAdmin),
-admin.site.register(RecruitmentPost, RecruitmentPostAdmin),
-admin.site.register(JobApplication, JobApplicationAdmin),
-admin.site.register(Status, StatusAdmin),
-admin.site.register(Skill, SkillAdmin),
-admin.site.register(Career, CareerAdmin),
-admin.site.register(Comment, CommentAdmin),
-admin.site.register(Rating, RatingAdmin),
-admin.site.register(Permission),
-admin.site.register(Like, LikeAdmin),
+# # Register your models here.
+# admin.site.register(User, UserAdmin),
+# admin.site.register(Employer, EmployerAdmin),
+# admin.site.register(Applicant, ApplicantAdmin),
+# admin.site.register(Area, AreaAdmin),
+# admin.site.register(EmploymentType, EmploymentTypeAdmin),
+# admin.site.register(RecruitmentPost, RecruitmentPostAdmin),
+# admin.site.register(JobApplication, JobApplicationAdmin),
+# admin.site.register(Status, StatusAdmin),
+# admin.site.register(Skill, SkillAdmin),
+# admin.site.register(Career, CareerAdmin),
+# admin.site.register(Comment, CommentAdmin),
+# admin.site.register(Rating, RatingAdmin),
+# admin.site.register(Permission),
+# admin.site.register(Like, LikeAdmin),

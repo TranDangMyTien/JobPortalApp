@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .form-control {
+      margin-bottom: 15px;
+      position: relative;
+    }
+    .form-control .tag {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .form-control input[type="text"],
+    .form-control input[type="email"],
+    .form-control textarea {
+      width: 100%;
+      padding: 10px 15px;
+      padding-right: 40px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+    }
+    .form-control i {
+      position: absolute;
+      top: 65%;
+      transform: translateY(-50%);
+      right: 10px;
+      color: #ccc;
+      font-size: 16px;
+    }
+    .submit-btn {
+      width: 100%;
+      background-color: #28a745;
+      color: white;
+      padding: 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .submit-btn:hover {
+      background-color: #218838;
+    }
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: -10px;
+      margin-bottom: 10px;
+      display: none;
+    }
+    .success-message {
+      text-align: center;
+      color: green;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>HỆ THỐNG GỬI MAIL CỦA OU JOB</h2>
+    <form action="" method="POST" class="contact-form">
+      {% csrf_token %}
+      <div class="form-control">
+        <div class="tag">Full Name</div>
+        <input type="text" name="full-name" placeholder="Nguyen Van A" required>
+        <i class="fas fa-user"></i>
+        <div class="error-message">Please enter your full name.</div>
+      </div>
+      <div class="form-control">
+        <div class="tag">Recipient Email</div>
+        <input type="email" name="recipient-email" placeholder="Recipient's Email" required>
+        <i class="fas fa-envelope"></i>
+        <div class="error-message">Please enter a valid recipient email address.</div>
+      </div>
+      <div class="form-control">
+        <div class="tag">Subject</div>
+        <input type="text" name="subject" placeholder="Your Subject" required>
+        <i class="fas fa-tag"></i>
+        <div class="error-message">Please enter a subject.</div>
+      </div>
+      <div class="form-control">
+        <div class="tag">Message</div>
+        <textarea name="message" rows="5" placeholder="Your message" style="font-family: Arial, sans-serif; font-size: 16px;" required></textarea>
+        <i class="fas fa-comment-dots" style="top: 55%;"></i>
+        <div class="error-message">Please enter your message.</div>
+      </div>
+      <div class="form-control">
+        <input type="submit" class="submit-btn" value="Send Message">
+      </div>
+      <div class="success-message">Your message has been sent successfully!</div>
+    </form>
+  </div>
+
+  <script>
+    document.querySelector('.contact-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      let valid = true;
+      document.querySelectorAll('.error-message').forEach(error => error.style.display = 'none');
+
+      const name = document.querySelector('input[name="full-name"]');
+      const recipientEmail = document.querySelector('input[name="recipient-email"]');
+      const subject = document.querySelector('input[name="subject"]');
+      const message = document.querySelector('textarea[name="message"]');
+
+      if (name.value.trim() === '') {
+        name.nextElementSibling.nextElementSibling.style.display = 'block';
+        valid = false;
+      }
+      if (recipientEmail.value.trim() === '' || !recipientEmail.value.includes('@')) {
+        recipientEmail.nextElementSibling.nextElementSibling.style.display = 'block';
+        valid = false;
+      }
+      if (subject.value.trim() === '') {
+        subject.nextElementSibling.nextElementSibling.style.display = 'block';
+        valid = false;
+      }
+      if (message.value.trim() === '') {
+        message.nextElementSibling.nextElementSibling.style.display = 'block';
+        valid = false;
+      }
+
+      if (valid) {
+        document.querySelector('.success-message').style.display = 'block';
+        setTimeout(() => {
+          document.querySelector('.success-message').style.display = 'none';
+          document.querySelector('.contact-form').submit();
+        }, 2000);
+      }
+    });
+  </script>
+</body>
+</html>

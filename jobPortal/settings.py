@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-4un)))_xd9a6hnt-cr1l7i9x1ixdvn5-#060@ky_)o7!kc*8x4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.1.6']
 
 
 # Application definition
@@ -189,15 +189,24 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-OAUTH2_PROVIDER = {
-    'ACCESS_TOKEN_EXPIRE_SECONDS': 36000,
-    'AUTHORIZATION_CODE_EXPIRE_SECONDS': 600,
-    'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
-    'SCOPES': {
-        'read': 'Read scope',
-        'write': 'Write scope',
-    },
-}
-# OAUTH2_PROVIDER = { 'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore' }
+# OAUTH2_PROVIDER = {
+#     'ACCESS_TOKEN_EXPIRE_SECONDS': 36000,
+#     'AUTHORIZATION_CODE_EXPIRE_SECONDS': 600,
+#     'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
+#     'SCOPES': {
+#         'read': 'Read scope',
+#         'write': 'Write scope',
+#     },
+# }
+OAUTH2_PROVIDER = { 'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore' }
 CLIENT_ID = "tyy4KAqKDflTVgAM4b2PtgpDOw6OpEzYtgiCP5jg"
 CLIENT_SECRET = "IAVEsJBqyNEpw1cKl0oylFpsCmcPKxlosLJcQXLZrpEQ8VkmXNCYUTjHdMEkfzkFj1dqroBc2eqt1Bh71XK3HMgJZcwvjaTwH1JRPOuu73ENpbcvM3Pi7w7pK0Tw4DFe"
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'tdmt.lutheir268@gmail.com'
+EMAIL_HOST_PASSWORD = 'uyqj ipfq kusj seiv'
+# qjN8RkEfpo5o8EGFnO3C2ZuFqt2eC4etSsmNBopL
+# WLeIxQv9CvijAVH7a9Ig8s6XARBlqKbZhCkv2PDc7BHTy0coSV3hk76i5YrSEG4Qpb6SbfhzOrudJcvX735NPjlNrWgLNpjI2xSHtqs5SO1aTsrUbWyBZoLBZJcT9f1s
