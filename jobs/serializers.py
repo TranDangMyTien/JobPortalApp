@@ -304,7 +304,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id','first_name', 'last_name', 'username', 'email', 'mobile', 'avatar', 'is_employer', 'is_applicant', 'applicant', 'employer','is_staff','is_superuser']
+        fields = ['id','first_name', 'last_name', 'username', 'email', 'mobile', 'avatar', 'is_employer', 'applicant', 'employer','is_staff','is_superuser']
         # depth = 1
 
     # CHỈ ĐƯỜNG DẪN TUYỆT ĐỐI ẢNH ĐƯỢC UP TRÊN CLOUDINARY

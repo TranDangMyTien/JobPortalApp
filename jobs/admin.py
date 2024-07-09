@@ -53,7 +53,7 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'mobile', 'gender', 'is_employer', 'is_applicant','is_staff','is_superuser', 'avatar')
+        fields = ('username', 'email', 'mobile', 'gender', 'is_employer', 'is_staff', 'is_superuser', 'avatar')
 
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput(render_value=True), required=False)
     password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput(render_value=True), required=False)
@@ -75,7 +75,7 @@ class UserForm(forms.ModelForm):
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'mobile', 'email', 'gender', 'is_superuser', 'is_staff', 'is_employer', 'is_applicant', ]
+    list_display = ['id', 'username', 'mobile', 'email', 'gender', 'is_superuser', 'is_staff', 'is_employer', ]
     search_fields = ['id', 'mobile']
     readonly_fields = ['is_superuser', 'is_staff']  # Trường is_superuser chỉ cho đọc không cho chỉnh
     form = UserForm  # Ghi đè lại form mặc định (form mình tự tạo ghi đè lên)

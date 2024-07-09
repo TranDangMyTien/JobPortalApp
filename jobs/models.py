@@ -39,7 +39,7 @@ class User(AbstractUser):
     email = models.EmailField(null=True, blank=True)
     gender = models.IntegerField(choices=GENDER_CHOICES, null=True, blank=True)
     is_employer = models.BooleanField(default=False)
-    is_applicant = models.BooleanField(default=True)
+    # is_applicant = models.BooleanField(default=True)
     class Meta:
         ordering = ['id']  # Sắp xếp theo thứ tự id tăng dần
 
@@ -110,8 +110,8 @@ class RecruitmentPost(BaseModel):
     employer = models.ForeignKey(Employer, models.CASCADE)
     image = CloudinaryField('image', null=True, blank=True)
     career = models.ForeignKey('Career', on_delete=models.PROTECT, null=True)
-    employmenttype = models.ForeignKey(EmploymentType, on_delete=models.PROTECT, null=True)
-    area = models.ForeignKey(Area, models.RESTRICT, null=True)
+    employmenttype = models.ForeignKey(EmploymentType, on_delete=models.PROTECT)
+    area = models.ForeignKey(Area, models.RESTRICT)
     # Tiêu đề
     title = models.CharField(max_length=255)
     # Ngày hết hạn

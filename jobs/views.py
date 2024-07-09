@@ -849,9 +849,9 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.ListAPIView
         return self.serializer_class
 
     def get_permissions(self):
-        if self.action in ['get_current_user','patch_current_user', 'delete_account']:
+        if self.action in ['get_current_user', 'patch_current_user', 'delete_account']:
             return [perms.IsAdminOrSelf()]
-        return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
 
     # API xem chi tiết tài khoản hiện (chỉ xem được của mình) + cập nhật tài khoản (của mình)
     # /users/current-user/
