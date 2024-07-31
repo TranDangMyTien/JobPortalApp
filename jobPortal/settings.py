@@ -26,11 +26,17 @@ SECRET_KEY = 'django-insecure-4un)))_xd9a6hnt-cr1l7i9x1ixdvn5-#060@ky_)o7!kc*8x4
 DEBUG = True
 
 ALLOWED_HOSTS = ['192.168.1.8']
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # Application definition
 
 INSTALLED_APPS = [
+    # 'adminlte3',
+    # 'adminlte3_theme',
+    # 'admin_adminlte.apps.AdminAdminlteConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -114,9 +120,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         # Tạo csdl mới tên là ecoursesdb
-        'NAME': 'jobdb',
-        'USER': 'root',
-        'PASSWORD': 'm1234567890',
+        'NAME': os.getenv('DATABASE_NAME'),
+        'USER': os.getenv('DATABASE_USER'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
         # Mặc định là Localhot
         'HOST': ''
     }
@@ -126,9 +132,9 @@ DATABASES = {
 import cloudinary
 
 cloudinary.config(
-    cloud_name="dvxzmwuat",
-    api_key="814652831379359",
-    api_secret="BzgebW7M-yEgHzKWgEf176-MK6I"
+    cloud_name=os.getenv('CLOUD_NAME'),
+    api_key=os.getenv('CLOUD_KEY'),
+    api_secret=os.getenv('CLOUD_SECRET'),
 
 )
 
@@ -183,30 +189,31 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+# import os
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# OAUTH2_PROVIDER = {
-#     'ACCESS_TOKEN_EXPIRE_SECONDS': 36000,
-#     'AUTHORIZATION_CODE_EXPIRE_SECONDS': 600,
-#     'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
-#     'SCOPES': {
-#         'read': 'Read scope',
-#         'write': 'Write scope',
-#     },
-# }
+OAUTH2_PROVIDER = {
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 36000,  # Thời gian hết hạn của token truy cập (access token) được cấu hình là 36000 giây, tức là 10 giờ
+    'AUTHORIZATION_CODE_EXPIRE_SECONDS': 600,
+    'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+    },
+}
+
 OAUTH2_PROVIDER = { 'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore' }
-CLIENT_ID = "tyy4KAqKDflTVgAM4b2PtgpDOw6OpEzYtgiCP5jg"
-CLIENT_SECRET = "IAVEsJBqyNEpw1cKl0oylFpsCmcPKxlosLJcQXLZrpEQ8VkmXNCYUTjHdMEkfzkFj1dqroBc2eqt1Bh71XK3HMgJZcwvjaTwH1JRPOuu73ENpbcvM3Pi7w7pK0Tw4DFe"
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+CLIENT_ID = os.getenv('OAUTH2_ID'),
+CLIENT_SECRET = os.getenv('OAUTH2_SECRET'),
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND'),
+EMAIL_HOST = os.getenv('smtp.gmail.com'),
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'tdmt.lutheir268@gmail.com'
-EMAIL_HOST_PASSWORD = 'uyqj ipfq kusj seiv'
-# qjN8RkEfpo5o8EGFnO3C2ZuFqt2eC4etSsmNBopL
-# WLeIxQv9CvijAVH7a9Ig8s6XARBlqKbZhCkv2PDc7BHTy0coSV3hk76i5YrSEG4Qpb6SbfhzOrudJcvX735NPjlNrWgLNpjI2xSHtqs5SO1aTsrUbWyBZoLBZJcT9f1s
+EMAIL_HOST_USER = os.getenv('EMAIL_USER'),
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD'),

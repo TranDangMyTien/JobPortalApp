@@ -331,6 +331,8 @@ class MyAdminSite(admin.AdminSite):
     site_title = 'Custom by Mtie'
     site_url = "/"
 
+
+
     # Ghi đè lại url đã có
     def get_urls(self):
         return [

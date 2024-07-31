@@ -39,7 +39,6 @@ class User(AbstractUser):
     email = models.EmailField(null=True, blank=True)
     gender = models.IntegerField(choices=GENDER_CHOICES, null=True, blank=True)
     is_employer = models.BooleanField(default=False)
-    # is_applicant = models.BooleanField(default=True)
     class Meta:
         ordering = ['id']  # Sắp xếp theo thứ tự id tăng dần
 
