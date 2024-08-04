@@ -1,5 +1,5 @@
 from jobs.models import (JobApplication, RecruitmentPost, Employer, Applicant, EmploymentType,
-                         Career, Comment, Rating, Like,
+                         Career, Like,
                          )
 from django.db.models import Count, Q, Avg
 from datetime import datetime
@@ -138,26 +138,26 @@ def count_recruitment_posts_by_employer():
 
     return recruitment_posts_by_employer
 
-# Tính tổng số lượt comment trung bình mỗi bài đăng tuyển dụng
-def average_comments_per_recruitment_post():
-    average_comments = Comment.objects.values('interaction__recruitment').annotate(
-        average_comments=Avg('id')
-    ).aggregate(
-        overall_average=Avg('average_comments')
-    )
+# # Tính tổng số lượt comment trung bình mỗi bài đăng tuyển dụng
+# def average_comments_per_recruitment_post():
+#     average_comments = Comment.objects.values('interaction__recruitment').annotate(
+#         average_comments=Avg('id')
+#     ).aggregate(
+#         overall_average=Avg('average_comments')
+#     )
+#
+#     return average_comments
 
-    return average_comments
 
-
-# Tính tổng số lượt rating trung bình mỗi bài đăng tuyển dụng
-def average_ratings_per_recruitment_post():
-    average_ratings = Rating.objects.values('interaction__recruitment').annotate(
-        average_ratings=Avg('rating')
-    ).aggregate(
-        overall_average=Avg('average_ratings')
-    )
-
-    return average_ratings
+# # Tính tổng số lượt rating trung bình mỗi bài đăng tuyển dụng
+# def average_ratings_per_recruitment_post():
+#     average_ratings = Rating.objects.values('interaction__recruitment').annotate(
+#         average_ratings=Avg('rating')
+#     ).aggregate(
+#         overall_average=Avg('average_ratings')
+#     )
+#
+#     return average_ratings
 
 # Tính tổng số lượt like trung bình mỗi bài đăng tuyển dụng
 def average_likes_per_recruitment_post():

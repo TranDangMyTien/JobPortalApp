@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 
-from jobs.models import RecruitmentPost, Comment, Rating
+from jobs.models import RecruitmentPost
 from jobs import serializers
 from jobs import paginators
 from django.utils import timezone
@@ -9,9 +9,9 @@ from rest_framework import viewsets, generics, permissions, status, parsers
 from rest_framework.decorators import action
 from jobs import dao
 from .models import JobApplication, Employer, Applicant, User, Notification, Status, Like
-from .serializers import (JobApplicationSerializer, AuthenticatedRecruitmentPostSerializer, CreatRatingSerializer,
-                          ReadCommentSerializer, Career, EmploymentType, Area, CreateCommentReplySerializer,
-                          RecruitmentPostSerializer, NotificationSerializer, Skill, CreateCommentSerializer,
+from .serializers import (JobApplicationSerializer, AuthenticatedRecruitmentPostSerializer,
+                          Career, EmploymentType, Area,
+                          RecruitmentPostSerializer, NotificationSerializer, Skill,
                           CreateJobApplicationStatusSerializer)
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
@@ -471,363 +471,363 @@ class RecruitmentPostViewSet(viewsets.ViewSet, generics.RetrieveAPIView, generic
         except JobApplication.DoesNotExist:
             return Response({"error": "Job application not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    # API tạo đánh giá một bài tuyển dụng
-    # /recruitments_post/<pk>/ratings/
-    @action(methods=['get', 'post'], detail=True, url_path='ratings', url_name='ratings')
-    def create_rating(self, request, pk=None):
-        try:
-            # Lấy bài đăng tuyển dụng từ pk
-            recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
+    # # API tạo đánh giá một bài tuyển dụng
+    # # /recruitments_post/<pk>/ratings/
+    # @action(methods=['get', 'post'], detail=True, url_path='ratings', url_name='ratings')
+    # def create_rating(self, request, pk=None):
+    #     try:
+    #         # Lấy bài đăng tuyển dụng từ pk
+    #         recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
+    #
+    #         # Kiểm tra xem người dùng đã đánh giá bài đăng này chưa
+    #         existing_rating = Rating.objects.filter(recruitment=recruitment_post, user=request.user).first()
+    #         if existing_rating:
+    #             return Response({"error": "You have already rated this recruitment post."},
+    #                             status=status.HTTP_400_BAD_REQUEST)
+    #
+    #         rating_data = {
+    #             'recruitment_post': recruitment_post.id,
+    #             'rating': request.data.get('rating'),
+    #             'user': request.user.id
+    #         }
+    #
+    #         serializer = CreatRatingSerializer(data=rating_data)
+    #         serializer.is_valid(raise_exception=True)
+    #         serializer.save()
+    #
+    #         # Trả về thông tin về đánh giá mới được tạo
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #
+    #     except RecruitmentPost.DoesNotExist:
+    #         return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Kiểm tra xem người dùng đã đánh giá bài đăng này chưa
-            existing_rating = Rating.objects.filter(recruitment=recruitment_post, user=request.user).first()
-            if existing_rating:
-                return Response({"error": "You have already rated this recruitment post."},
-                                status=status.HTTP_400_BAD_REQUEST)
+    # # API xem chi tiết đánh giá một bài tuyển dụng
+    # # /recruitments_post/<pk>/ratings/
+    # @action(methods=['get'], detail=True, url_path='ratings', url_name='ratings')
+    # def read_rating(self, request, pk=None):
+    #     try:
+    #         # Lấy bài đăng tuyển dụng từ pk
+    #         recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
+    #
+    #         # Lấy danh sách rating của bài đăng
+    #         ratings = recruitment_post.rating_set.all()
+    #
+    #         # Phân trang danh sách rating (commented out)
+    #         # paginator = paginators.RatingPaginator()
+    #         # paginated_ratings = paginator.paginate_queryset(ratings, request)
+    #
+    #         # Serialize danh sách rating
+    #         # serializer = CreatRatingSerializer(paginated_ratings, many=True)  # Sử dụng phân trang
+    #         serializer = CreatRatingSerializer(ratings, many=True)  # Không sử dụng phân trang
+    #
+    #         # Trả về danh sách rating đã phân trang (commented out)
+    #         # return paginator.get_paginated_response(serializer.data)
+    #
+    #         # Trả về danh sách rating không phân trang
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+    #
+    #     except RecruitmentPost.DoesNotExist:
+    #         return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            rating_data = {
-                'recruitment_post': recruitment_post.id,
-                'rating': request.data.get('rating'),
-                'user': request.user.id
-            }
+    # # API cập nhật rating một bài đăng tuyển dụng
+    # # /recruitments_post/{pk}/ratings/{rating_id}/partial-update/
+    # @action(detail=True, methods=['patch'], url_path='ratings/(?P<rating_id>\d+)/partial-update')
+    # def partial_update_rating(self, request, pk=None, rating_id=None):
+    #     try:
+    #         # Lấy bài đăng tuyển dụng từ pk
+    #         recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
+    #         # Lấy comment từ comment_id
+    #         rating = get_object_or_404(Rating, pk=rating_id)
+    #         # Kiểm tra xem comment có thuộc về bài đăng tuyển dụng không
+    #         if rating.recruitment != recruitment_post:
+    #             return Response({"error": "Rating does not belong to this recruitment post."},
+    #                             status=status.HTTP_400_BAD_REQUEST)
+    #         # Kiểm tra quyền chỉnh sửa Rating
+    #         user = request.user
+    #         if user != rating.user:
+    #             return Response({"error": "You do not have permission to delete this rating."},
+    #                             status=status.HTTP_403_FORBIDDEN)
+    #
+    #         # Cập nhật một phần của rating
+    #         for key, value in request.data.items():
+    #             setattr(rating, key, value)
+    #         rating.save()
+    #         # Serialize và trả về thông tin cập nhật của rating
+    #         serializer = CreatRatingSerializer(rating)
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+    #     except RecruitmentPost.DoesNotExist:
+    #         return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+    #     except Rating.DoesNotExist:
+    #         return Response({"error": "Rating not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            serializer = CreatRatingSerializer(data=rating_data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+    # # API xóa rating của một bài đăng tuyển dụng
+    # # /recruitments_post/<pk>/ratings/<rating_id>/delete/
+    # @action(detail=True, methods=['delete'], url_path='ratings/(?P<rating_id>\d+)/delete',
+    #         url_name='delete_rating')
+    # def delete_rating(self, request, pk=None, rating_id=None):
+    #     try:
+    #         # Lấy bài đăng tuyển dụng từ pk
+    #         recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
+    #
+    #         # Lấy rating từ rating_id
+    #         rating = get_object_or_404(Rating, pk=rating_id)
+    #
+    #         # Kiểm tra xem rating có thuộc về bài đăng tuyển dụng không
+    #         if rating.recruitment_post != recruitment_post:
+    #             return Response({"error": "Rating does not belong to this recruitment post."},
+    #                             status=status.HTTP_400_BAD_REQUEST)
+    #
+    #         # Kiểm tra quyền xóa rating
+    #         user = request.user
+    #         if user != rating.user:
+    #             return Response({"error": "You do not have permission to delete this comment."},
+    #                             status=status.HTTP_403_FORBIDDEN)
+    #
+    #         # Xóa rating
+    #         rating.delete()
+    #
+    #         return Response({"message": "Rating deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+    #
+    #     except RecruitmentPost.DoesNotExist:
+    #         return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+    #     except Rating.DoesNotExist:
+    #         return Response({"error": "Rating not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Trả về thông tin về đánh giá mới được tạo
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # # API tạo mới một comment trong bài đăng tuyển dụng + Xem danh sách comment của bài đăng tuyển dụng
+    # # /recruitments_post/<pk>/comments/
+    # # /recruitments_post/<pk>/comments/<userId>/user/
+    # @action(methods=['post'], detail=True, url_path=r'comments/(?P<userId>\d+)/user', url_name='comments_user')
+    # def create_comment(self, request, pk=None, userId=None):
+    #     try:
+    #         # Lấy bài đăng tuyển dụng từ pk
+    #         recruitment_post = RecruitmentPost.objects.get(pk=pk)
+    #
+    #         # Lấy người dùng từ userId
+    #         user = User.objects.get(pk=userId)
+    #
+    #         if user:
+    #             comment = Comment.objects.create(
+    #                 user=user,
+    #                 content=request.data.get('content'),
+    #                 recruitment=recruitment_post,
+    #                 created_date=timezone.now()
+    #             )
+    #             serializer = CreateCommentSerializer(comment)
+    #
+    #             # Trả về thông tin về comment mới được tạo
+    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #         else:
+    #             return Response({"error": "User not found."},
+    #                             status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     except RecruitmentPost.DoesNotExist:
+    #         return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+    #     except User.DoesNotExist:
+    #         return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+    #     except Exception as e:
+    #         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+    # # API xem danh sách comment của một bài đăng tuyển dụng
+    # # /recruitments_post/<pk>/read-comments/
+    # @action(methods=['get'], detail=True, name='read-comments', url_path='read-comments', url_name='read-comments')
+    # def read_comments(self, request, pk=None):
+    #     try:
+    #         # Lấy bài đăng tuyển dụng từ pk
+    #         recruitment_post = RecruitmentPost.objects.get(pk=pk)
+    #         # Lấy danh sách comment của bài đăng
+    #         comments = recruitment_post.comment_set.all()
+    #
+    #         # Phân trang danh sách comment
+    #         # paginator = paginators.CommentPaginator()
+    #         # paginated_comments = paginator.paginate_queryset(comments, request)
+    #
+    #         # # Serialize danh sách comment
+    #         # serializer = CreateCommentSerializer(paginated_comments, many=True)
+    #
+    #         # Serialize danh sách comment
+    #         serializer = ReadCommentSerializer(comments, many=True)
+    #
+    #         # # Trả về danh sách comment đã phân trang
+    #         # return paginator.get_paginated_response(serializer.data)
+    #
+    #         # Trả về danh sách comment đã serialize
+    #         return Response(serializer.data)
+    #
+    #     except RecruitmentPost.DoesNotExist:
+    #         return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    # API xem chi tiết đánh giá một bài tuyển dụng
-    # /recruitments_post/<pk>/ratings/
-    @action(methods=['get'], detail=True, url_path='ratings', url_name='ratings')
-    def read_rating(self, request, pk=None):
-        try:
-            # Lấy bài đăng tuyển dụng từ pk
-            recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
+    # # API reply commment trong một bài tuyển dụng nhất định
+    # # /recruitments_post/<pk>/comments/<comment_pk>/reply_comment/
+    # @action(detail=True, methods=['post'], url_path='comments/(?P<comment_pk>\d+)/reply_comment',
+    #         url_name='reply_comment')
+    # def reply_comment(self, request, pk=None, comment_pk=None):
+    #     try:
+    #         # Lấy bài đăng tuyển dụng từ pk
+    #         recruitment_post = RecruitmentPost.objects.get(pk=pk)
+    #         # Lấy comment cha từ comment_pk
+    #         parent_comment = Comment.objects.get(pk=comment_pk)
+    #         # Tạo một comment mới
+    #         user = request.user
+    #
+    #         if user:
+    #             reply_comment = Comment.objects.create(
+    #                 recruitment=recruitment_post,
+    #                 content=request.data.get('content'),
+    #                 parent=parent_comment,
+    #                 **{user.__class__.__name__.lower(): user}  # UNPACK để tạo keyword
+    #             )
+    #             serializer = CreateCommentSerializer(reply_comment)
+    #             # Trả về thông tin về reply comment mới được tạo
+    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #         else:
+    #             return Response({"error": "User is not an applicant or employer."},
+    #                             status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     except RecruitmentPost.DoesNotExist:
+    #         return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+    #     except Comment.DoesNotExist:
+    #         return Response({"error": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Lấy danh sách rating của bài đăng
-            ratings = recruitment_post.rating_set.all()
+    # # API đọc danh sách reply comment
+    # # /recruitments_post/<pk>/comments/<comment_pk>/reply_comment/
+    # @action(detail=True, methods=['get'], url_path='comments/(?P<comment_pk>\d+)/read_reply_comment',
+    #         url_name='read_reply_comment')
+    # def read_reply_comment(self, request, pk=None, comment_pk=None):
+    #     try:
+    #         # Lấy bài đăng tuyển dụng từ pk
+    #         recruitment_post = RecruitmentPost.objects.get(pk=pk)
+    #         # Lấy comment cha từ comment_pk
+    #         parent_comment = Comment.objects.get(pk=comment_pk, recruitment_id=recruitment_post.id)
+    #         # Lấy danh sách các reply comment cho comment cha
+    #         replies = parent_comment.replies.all()  # replies: là một trường related_name
+    #         # Phân trang danh sách reply comment
+    #         paginator = paginators.CommentReplyPaginator()
+    #         paginated_replies = paginator.paginate_queryset(replies, request)
+    #         # Serialize danh sách reply comment
+    #         serializer = CreateCommentReplySerializer(paginated_replies, many=True)
+    #         # Trả về danh sách comment đã phân trang
+    #         return paginator.get_paginated_response(serializer.data)
+    #     except RecruitmentPost.DoesNotExist:
+    #         return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+    #     except Comment.DoesNotExist:
+    #         return Response({"error": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Phân trang danh sách rating (commented out)
-            # paginator = paginators.RatingPaginator()
-            # paginated_ratings = paginator.paginate_queryset(ratings, request)
+    # # API xóa comment trong bài đăng tuyển dụng => Xóa luôn các comment là con
+    # # /recruitments_post/<pk>/comments/<comment_id>/delete/
+    # @action(detail=True, methods=['delete'], url_path='comments/(?P<comment_id>\\d+)/delete', url_name='delete_comment')
+    # def delete_comment(self, request, pk=None, comment_id=None):
+    #     try:
+    #         recruitment_post = RecruitmentPost.objects.get(pk=pk)
+    #         comment = Comment.objects.get(pk=comment_id)
+    #
+    #         if comment.recruitment != recruitment_post:
+    #             return Response({"error": "Comment does not belong to this recruitment post."},
+    #                             status=status.HTTP_400_BAD_REQUEST)
+    #
+    #         user = request.user
+    #         if user != comment.user:  # Chỉ người tạo mới được xóa
+    #             return Response({"error": "You do not have permission to delete this comment."},
+    #                             status=status.HTTP_403_FORBIDDEN)
+    #
+    #         comment.delete()
+    #         return Response({"message": "Comment deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+    #
+    #     except RecruitmentPost.DoesNotExist:
+    #         return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+    #     except Comment.DoesNotExist:
+    #         return Response({"error": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Serialize danh sách rating
-            # serializer = CreatRatingSerializer(paginated_ratings, many=True)  # Sử dụng phân trang
-            serializer = CreatRatingSerializer(ratings, many=True)  # Không sử dụng phân trang
+    # # API xóa comment reply trong bài đăng tuyển dụng
+    # # /recruitments_post/<pk>/comments/<comment_id>/replies/<reply_id>/delete/
+    # @action(detail=True, methods=['delete'], url_path='comments/(?P<comment_id>\d+)/replies/(?P<reply_id>\d+)/delete',
+    #         url_name='delete_reply')
+    # def delete_reply(self, request, pk=None, comment_id=None, reply_id=None):
+    #     try:
+    #         recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
+    #         comment = get_object_or_404(Comment, pk=comment_id)
+    #         reply = get_object_or_404(Comment, pk=reply_id, parent=comment)
+    #
+    #         if comment.recruitment != recruitment_post:
+    #             return Response({"error": "Comment does not belong to this recruitment post."},
+    #                             status=status.HTTP_400_BAD_REQUEST)
+    #
+    #         user = request.user
+    #         if user != comment.user:
+    #             return Response({"error": "You do not have permission to delete this comment."},
+    #                             status=status.HTTP_403_FORBIDDEN)
+    #
+    #         reply.delete()
+    #         return Response({"message": "Reply deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+    #
+    #     except RecruitmentPost.DoesNotExist:
+    #         return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+    #     except Comment.DoesNotExist:
+    #         return Response({"error": "Comment or reply not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Trả về danh sách rating đã phân trang (commented out)
-            # return paginator.get_paginated_response(serializer.data)
+    # # API cập nhật một phần comment trong bài đăng tuyển dụng
+    # # /recruitments_post/{pk}/comments/{comment_id}/partial-update/
+    # @action(detail=True, methods=['patch'], url_path='comments/(?P<comment_id>\d+)/partial-update',
+    #         url_name='partial_update_comment')
+    # def partial_update_comment(self, request, pk=None, comment_id=None):
+    #     try:
+    #         # Lấy bài đăng tuyển dụng từ pk
+    #         recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
+    #
+    #         # Lấy comment từ comment_id
+    #         comment = get_object_or_404(Comment, pk=comment_id)
+    #
+    #         # Kiểm tra xem comment có thuộc về bài đăng tuyển dụng không
+    #         if comment.recruitment != recruitment_post:
+    #             return Response({"error": "Comment does not belong to this recruitment post."},
+    #                             status=status.HTTP_400_BAD_REQUEST)
+    #
+    #         user = request.user
+    #         if user != comment.user:
+    #             return Response({"error": "You do not have permission to delete this comment."},
+    #                             status=status.HTTP_403_FORBIDDEN)
+    #
+    #         # Cập nhật một phần của comment
+    #         for key, value in request.data.items():
+    #             setattr(comment, key, value)
+    #         comment.save()
+    #
+    #         return Response(CreateCommentSerializer(comment).data, status=status.HTTP_200_OK)
+    #
+    #     except RecruitmentPost.DoesNotExist:
+    #         return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+    #     except Comment.DoesNotExist:
+    #         return Response({"error": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Trả về danh sách rating không phân trang
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    # API cập nhật rating một bài đăng tuyển dụng
-    # /recruitments_post/{pk}/ratings/{rating_id}/partial-update/
-    @action(detail=True, methods=['patch'], url_path='ratings/(?P<rating_id>\d+)/partial-update')
-    def partial_update_rating(self, request, pk=None, rating_id=None):
-        try:
-            # Lấy bài đăng tuyển dụng từ pk
-            recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
-            # Lấy comment từ comment_id
-            rating = get_object_or_404(Rating, pk=rating_id)
-            # Kiểm tra xem comment có thuộc về bài đăng tuyển dụng không
-            if rating.recruitment != recruitment_post:
-                return Response({"error": "Rating does not belong to this recruitment post."},
-                                status=status.HTTP_400_BAD_REQUEST)
-            # Kiểm tra quyền chỉnh sửa Rating
-            user = request.user
-            if user != rating.user:
-                return Response({"error": "You do not have permission to delete this rating."},
-                                status=status.HTTP_403_FORBIDDEN)
-
-            # Cập nhật một phần của rating
-            for key, value in request.data.items():
-                setattr(rating, key, value)
-            rating.save()
-            # Serialize và trả về thông tin cập nhật của rating
-            serializer = CreatRatingSerializer(rating)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Rating.DoesNotExist:
-            return Response({"error": "Rating not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    # API xóa rating của một bài đăng tuyển dụng
-    # /recruitments_post/<pk>/ratings/<rating_id>/delete/
-    @action(detail=True, methods=['delete'], url_path='ratings/(?P<rating_id>\d+)/delete',
-            url_name='delete_rating')
-    def delete_rating(self, request, pk=None, rating_id=None):
-        try:
-            # Lấy bài đăng tuyển dụng từ pk
-            recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
-
-            # Lấy rating từ rating_id
-            rating = get_object_or_404(Rating, pk=rating_id)
-
-            # Kiểm tra xem rating có thuộc về bài đăng tuyển dụng không
-            if rating.recruitment_post != recruitment_post:
-                return Response({"error": "Rating does not belong to this recruitment post."},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            # Kiểm tra quyền xóa rating
-            user = request.user
-            if user != rating.user:
-                return Response({"error": "You do not have permission to delete this comment."},
-                                status=status.HTTP_403_FORBIDDEN)
-
-            # Xóa rating
-            rating.delete()
-
-            return Response({"message": "Rating deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
-
-        except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Rating.DoesNotExist:
-            return Response({"error": "Rating not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    # API tạo mới một comment trong bài đăng tuyển dụng + Xem danh sách comment của bài đăng tuyển dụng
-    # /recruitments_post/<pk>/comments/
-    # /recruitments_post/<pk>/comments/<userId>/user/
-    @action(methods=['post'], detail=True, url_path=r'comments/(?P<userId>\d+)/user', url_name='comments_user')
-    def create_comment(self, request, pk=None, userId=None):
-        try:
-            # Lấy bài đăng tuyển dụng từ pk
-            recruitment_post = RecruitmentPost.objects.get(pk=pk)
-
-            # Lấy người dùng từ userId
-            user = User.objects.get(pk=userId)
-
-            if user:
-                comment = Comment.objects.create(
-                    user=user,
-                    content=request.data.get('content'),
-                    recruitment=recruitment_post,
-                    created_date=timezone.now()
-                )
-                serializer = CreateCommentSerializer(comment)
-
-                # Trả về thông tin về comment mới được tạo
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response({"error": "User not found."},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-        except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
-        except User.DoesNotExist:
-            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    # API xem danh sách comment của một bài đăng tuyển dụng
-    # /recruitments_post/<pk>/read-comments/
-    @action(methods=['get'], detail=True, name='read-comments', url_path='read-comments', url_name='read-comments')
-    def read_comments(self, request, pk=None):
-        try:
-            # Lấy bài đăng tuyển dụng từ pk
-            recruitment_post = RecruitmentPost.objects.get(pk=pk)
-            # Lấy danh sách comment của bài đăng
-            comments = recruitment_post.comment_set.all()
-
-            # Phân trang danh sách comment
-            # paginator = paginators.CommentPaginator()
-            # paginated_comments = paginator.paginate_queryset(comments, request)
-
-            # # Serialize danh sách comment
-            # serializer = CreateCommentSerializer(paginated_comments, many=True)
-
-            # Serialize danh sách comment
-            serializer = ReadCommentSerializer(comments, many=True)
-
-            # # Trả về danh sách comment đã phân trang
-            # return paginator.get_paginated_response(serializer.data)
-
-            # Trả về danh sách comment đã serialize
-            return Response(serializer.data)
-
-        except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    # API reply commment trong một bài tuyển dụng nhất định
-    # /recruitments_post/<pk>/comments/<comment_pk>/reply_comment/
-    @action(detail=True, methods=['post'], url_path='comments/(?P<comment_pk>\d+)/reply_comment',
-            url_name='reply_comment')
-    def reply_comment(self, request, pk=None, comment_pk=None):
-        try:
-            # Lấy bài đăng tuyển dụng từ pk
-            recruitment_post = RecruitmentPost.objects.get(pk=pk)
-            # Lấy comment cha từ comment_pk
-            parent_comment = Comment.objects.get(pk=comment_pk)
-            # Tạo một comment mới
-            user = request.user
-
-            if user:
-                reply_comment = Comment.objects.create(
-                    recruitment=recruitment_post,
-                    content=request.data.get('content'),
-                    parent=parent_comment,
-                    **{user.__class__.__name__.lower(): user}  # UNPACK để tạo keyword
-                )
-                serializer = CreateCommentSerializer(reply_comment)
-                # Trả về thông tin về reply comment mới được tạo
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response({"error": "User is not an applicant or employer."},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-        except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Comment.DoesNotExist:
-            return Response({"error": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    # API đọc danh sách reply comment
-    # /recruitments_post/<pk>/comments/<comment_pk>/reply_comment/
-    @action(detail=True, methods=['get'], url_path='comments/(?P<comment_pk>\d+)/read_reply_comment',
-            url_name='read_reply_comment')
-    def read_reply_comment(self, request, pk=None, comment_pk=None):
-        try:
-            # Lấy bài đăng tuyển dụng từ pk
-            recruitment_post = RecruitmentPost.objects.get(pk=pk)
-            # Lấy comment cha từ comment_pk
-            parent_comment = Comment.objects.get(pk=comment_pk, recruitment_id=recruitment_post.id)
-            # Lấy danh sách các reply comment cho comment cha
-            replies = parent_comment.replies.all()  # replies: là một trường related_name
-            # Phân trang danh sách reply comment
-            paginator = paginators.CommentReplyPaginator()
-            paginated_replies = paginator.paginate_queryset(replies, request)
-            # Serialize danh sách reply comment
-            serializer = CreateCommentReplySerializer(paginated_replies, many=True)
-            # Trả về danh sách comment đã phân trang
-            return paginator.get_paginated_response(serializer.data)
-        except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Comment.DoesNotExist:
-            return Response({"error": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    # API xóa comment trong bài đăng tuyển dụng => Xóa luôn các comment là con
-    # /recruitments_post/<pk>/comments/<comment_id>/delete/
-    @action(detail=True, methods=['delete'], url_path='comments/(?P<comment_id>\\d+)/delete', url_name='delete_comment')
-    def delete_comment(self, request, pk=None, comment_id=None):
-        try:
-            recruitment_post = RecruitmentPost.objects.get(pk=pk)
-            comment = Comment.objects.get(pk=comment_id)
-
-            if comment.recruitment != recruitment_post:
-                return Response({"error": "Comment does not belong to this recruitment post."},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            user = request.user
-            if user != comment.user:  # Chỉ người tạo mới được xóa
-                return Response({"error": "You do not have permission to delete this comment."},
-                                status=status.HTTP_403_FORBIDDEN)
-
-            comment.delete()
-            return Response({"message": "Comment deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
-
-        except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Comment.DoesNotExist:
-            return Response({"error": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    # API xóa comment reply trong bài đăng tuyển dụng
-    # /recruitments_post/<pk>/comments/<comment_id>/replies/<reply_id>/delete/
-    @action(detail=True, methods=['delete'], url_path='comments/(?P<comment_id>\d+)/replies/(?P<reply_id>\d+)/delete',
-            url_name='delete_reply')
-    def delete_reply(self, request, pk=None, comment_id=None, reply_id=None):
-        try:
-            recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
-            comment = get_object_or_404(Comment, pk=comment_id)
-            reply = get_object_or_404(Comment, pk=reply_id, parent=comment)
-
-            if comment.recruitment != recruitment_post:
-                return Response({"error": "Comment does not belong to this recruitment post."},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            user = request.user
-            if user != comment.user:
-                return Response({"error": "You do not have permission to delete this comment."},
-                                status=status.HTTP_403_FORBIDDEN)
-
-            reply.delete()
-            return Response({"message": "Reply deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
-
-        except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Comment.DoesNotExist:
-            return Response({"error": "Comment or reply not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    # API cập nhật một phần comment trong bài đăng tuyển dụng
-    # /recruitments_post/{pk}/comments/{comment_id}/partial-update/
-    @action(detail=True, methods=['patch'], url_path='comments/(?P<comment_id>\d+)/partial-update',
-            url_name='partial_update_comment')
-    def partial_update_comment(self, request, pk=None, comment_id=None):
-        try:
-            # Lấy bài đăng tuyển dụng từ pk
-            recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
-
-            # Lấy comment từ comment_id
-            comment = get_object_or_404(Comment, pk=comment_id)
-
-            # Kiểm tra xem comment có thuộc về bài đăng tuyển dụng không
-            if comment.recruitment != recruitment_post:
-                return Response({"error": "Comment does not belong to this recruitment post."},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            user = request.user
-            if user != comment.user:
-                return Response({"error": "You do not have permission to delete this comment."},
-                                status=status.HTTP_403_FORBIDDEN)
-
-            # Cập nhật một phần của comment
-            for key, value in request.data.items():
-                setattr(comment, key, value)
-            comment.save()
-
-            return Response(CreateCommentSerializer(comment).data, status=status.HTTP_200_OK)
-
-        except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Comment.DoesNotExist:
-            return Response({"error": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    # API cập nhật một phần comment reply trong bài đăng tuyển dụng
-    # /recruitments_post/<pk>/comments/<comment_id>/replies/<reply_id>/partial-update/
-    @action(detail=True, methods=['patch'],
-            url_path='comments/(?P<comment_id>\d+)/replies/(?P<reply_id>\d+)/partial-update',
-            url_name='partial_update_reply')
-    def partial_update_reply(self, request, pk=None, comment_id=None, reply_id=None):
-        try:
-            recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
-            comment = get_object_or_404(Comment, pk=comment_id)
-            reply = get_object_or_404(Comment, pk=reply_id, parent=comment)
-
-            if comment.recruitment != recruitment_post:
-                return Response({"error": "Comment does not belong to this recruitment post."},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            user = request.user
-            if user != comment.user:
-                return Response({"error": "You do not have permission to delete this comment."},
-                                status=status.HTTP_403_FORBIDDEN)
-
-            for key, value in request.data.items():
-                setattr(reply, key, value)
-            reply.save()
-
-            return Response(CreateCommentReplySerializer(reply).data, status=status.HTTP_200_OK)
-
-        except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Comment.DoesNotExist:
-            return Response({"error": "Comment or reply not found."}, status=status.HTTP_404_NOT_FOUND)
+    # # API cập nhật một phần comment reply trong bài đăng tuyển dụng
+    # # /recruitments_post/<pk>/comments/<comment_id>/replies/<reply_id>/partial-update/
+    # @action(detail=True, methods=['patch'],
+    #         url_path='comments/(?P<comment_id>\d+)/replies/(?P<reply_id>\d+)/partial-update',
+    #         url_name='partial_update_reply')
+    # def partial_update_reply(self, request, pk=None, comment_id=None, reply_id=None):
+    #     try:
+    #         recruitment_post = get_object_or_404(RecruitmentPost, pk=pk)
+    #         comment = get_object_or_404(Comment, pk=comment_id)
+    #         reply = get_object_or_404(Comment, pk=reply_id, parent=comment)
+    #
+    #         if comment.recruitment != recruitment_post:
+    #             return Response({"error": "Comment does not belong to this recruitment post."},
+    #                             status=status.HTTP_400_BAD_REQUEST)
+    #
+    #         user = request.user
+    #         if user != comment.user:
+    #             return Response({"error": "You do not have permission to delete this comment."},
+    #                             status=status.HTTP_403_FORBIDDEN)
+    #
+    #         for key, value in request.data.items():
+    #             setattr(reply, key, value)
+    #         reply.save()
+    #
+    #         return Response(CreateCommentReplySerializer(reply).data, status=status.HTTP_200_OK)
+    #
+    #     except RecruitmentPost.DoesNotExist:
+    #         return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+    #     except Comment.DoesNotExist:
+    #         return Response({"error": "Comment or reply not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
 class UserViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.ListAPIView):

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from jobs.models import (User, Applicant, Skill, Area, Career, EmploymentType, Employer, Status, RecruitmentPost,
-                         Rating, Comment, JobApplication, Notification)
+                         JobApplication, Notification, Review)
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from .models import COMPANY_CHOICES
@@ -394,17 +394,28 @@ class CreateRecruitmentPostSerializer(serializers.ModelSerializer):
 
 
 
-# Phần hiển thị comment
-class CommentSerializer(serializers.ModelSerializer):
+# # Phần hiển thị comment
+# class CommentSerializer(serializers.ModelSerializer):
+#     recruitmentPost = serializers.SerializerMethodField()
+#     def get_recruitmentPost(self, obj):
+#         return RecruitmentPostSerializer(obj.recruitmentPost).data
+#
+#     class Meta:
+#         model = Comment
+#         fields = '__all__'
+#         # depth = 1
+
+
+# Phần hiển thị Review
+class ReviewSerializer(serializers.ModelSerializer):
     recruitmentPost = serializers.SerializerMethodField()
     def get_recruitmentPost(self, obj):
         return RecruitmentPostSerializer(obj.recruitmentPost).data
 
     class Meta:
-        model = Comment
+        model = Review
         fields = '__all__'
         # depth = 1
-
 
 # Phần cho Post để comment
 class RecruitmentPostCommentSerializer(serializers.ModelSerializer):
@@ -413,55 +424,62 @@ class RecruitmentPostCommentSerializer(serializers.ModelSerializer):
         fields = ['id', 'title']
 
 
-class CreatRatingSerializer(serializers.ModelSerializer):
-    user = UserDetailSerializer()
-    recruitment = RecruitmentPostCommentSerializer()
+# Phần tạo Post để review
+class RecruitmentPostReviewSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Rating
-        fields = ['id', 'recruitment' ,'user', 'rating']
+        model = RecruitmentPost
+        fields = ['id', 'title']
+
+
+# class CreatRatingSerializer(serializers.ModelSerializer):
+#     user = UserDetailSerializer()
+#     recruitment = RecruitmentPostCommentSerializer()
+#     class Meta:
+#         model = Rating
+#         fields = ['id', 'recruitment' ,'user', 'rating']
 
 
 # Tạo comment
-class CreateCommentSerializer(serializers.ModelSerializer):
-    # user = serializers.SerializerMethodField()
-    # user = UserDetailSerializer()
-    # recruitment = serializers.SerializerMethodField()
-    # recruitment = RecruitmentPostCommentSerializer()
-    # def get_user(self, obj):
-    #     return UserDetailSerializer(obj.user).data
-    # def get_recruitment(self, obj):
-    #     return RecruitmentPostSerializer(obj.recruitmentPost).data
-    class Meta:
-        model = Comment
-        fields = ['id','user','content','recruitment', 'created_date']
+# class CreateCommentSerializer(serializers.ModelSerializer):
+#     # user = serializers.SerializerMethodField()
+#     # user = UserDetailSerializer()
+#     # recruitment = serializers.SerializerMethodField()
+#     # recruitment = RecruitmentPostCommentSerializer()
+#     # def get_user(self, obj):
+#     #     return UserDetailSerializer(obj.user).data
+#     # def get_recruitment(self, obj):
+#     #     return RecruitmentPostSerializer(obj.recruitmentPost).data
+#     class Meta:
+#         model = Comment
+#         fields = ['id','user','content','recruitment', 'created_date']
 
 # Tạo comment
-class ReadCommentSerializer(serializers.ModelSerializer):
-    # user = serializers.SerializerMethodField()
-    # user = UserDetailSerializer()
-    # recruitment = serializers.SerializerMethodField()
-    # recruitment = RecruitmentPostCommentSerializer()
-    # def get_user(self, obj):
-    #     return UserDetailSerializer(obj.user).data
-    # def get_recruitment(self, obj):
-    #     return RecruitmentPostSerializer(obj.recruitmentPost).data
-    class Meta:
-        model = Comment
-        fields = ['id','user','content','recruitment', 'created_date', 'updated_date']
+# class ReadCommentSerializer(serializers.ModelSerializer):
+#     # user = serializers.SerializerMethodField()
+#     # user = UserDetailSerializer()
+#     # recruitment = serializers.SerializerMethodField()
+#     # recruitment = RecruitmentPostCommentSerializer()
+#     # def get_user(self, obj):
+#     #     return UserDetailSerializer(obj.user).data
+#     # def get_recruitment(self, obj):
+#     #     return RecruitmentPostSerializer(obj.recruitmentPost).data
+#     class Meta:
+#         model = Comment
+#         fields = ['id','user','content','recruitment', 'created_date', 'updated_date']
 
-class CommentParentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comment
-        fields = ['id','content']
+# class CommentParentSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Comment
+#         fields = ['id','content']
 
 # Tạo comment reply
-class CreateCommentReplySerializer(serializers.ModelSerializer):
-    user = PatchUserSerializer()
-    recruitment = RecruitmentPostCommentSerializer()
-    parent = CommentParentSerializer()
-    class Meta:
-        model = Comment
-        fields = ['parent','user','content','recruitment']
+# class CreateCommentReplySerializer(serializers.ModelSerializer):
+#     user = PatchUserSerializer()
+#     recruitment = RecruitmentPostCommentSerializer()
+#     parent = CommentParentSerializer()
+#     class Meta:
+#         model = Comment
+#         fields = ['parent','user','content','recruitment']
 
 
 

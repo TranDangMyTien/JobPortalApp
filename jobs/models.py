@@ -197,16 +197,31 @@ class Interaction(BaseModel):
     def __str__(self):
         return f'{self.user.username} - {self.recruitment_id}'
 
+# Review model (merged from Comment and Rating)
+class Review(Interaction):
+    content = models.CharField(max_length=255, null=True, blank=True)
+    rating = models.SmallIntegerField(
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Rate from 1 to 5"
+    )
 
-class Comment(Interaction):
-    content = models.CharField(max_length=255)
-    # Tạo phần trả lời comment
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     def __str__(self):
-        # return self.content
         return f'{self.user_id} - {self.content}'
+
     class Meta:
-        ordering = ['id', ]
+        unique_together = ['user', 'recruitment']
+        ordering = ['id']
+
+# class Comment(Interaction):
+#     content = models.CharField(max_length=255)
+#     # Tạo phần trả lời comment
+#     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+#     def __str__(self):
+#         # return self.content
+#         return f'{self.user_id} - {self.content}'
+#     class Meta:
+#         ordering = ['id', ]
 
 class Like(Interaction):
     class Meta:
@@ -215,16 +230,16 @@ class Like(Interaction):
         ordering = ['id', ]
 
 
-class Rating(Interaction):
-    rating = models.SmallIntegerField(
-        default=5,
-        validators=[MinValueValidator(1), MaxValueValidator(5)],
-        help_text="Rate from 1 to 5"
-    )
-    class Meta:
-        # unique_together = [['applicant', 'recruitment'], ['employer', 'recruitment']]
-        unique_together = ['user', 'recruitment']
-        ordering = ['id',]
+# class Rating(Interaction):
+#     rating = models.SmallIntegerField(
+#         default=5,
+#         validators=[MinValueValidator(1), MaxValueValidator(5)],
+#         help_text="Rate from 1 to 5"
+#     )
+#     class Meta:
+#         # unique_together = [['applicant', 'recruitment'], ['employer', 'recruitment']]
+#         unique_together = ['user', 'recruitment']
+#         ordering = ['id',]
 
 
 # Phần thông báo

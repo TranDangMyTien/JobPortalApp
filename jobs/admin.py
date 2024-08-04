@@ -4,7 +4,7 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from jobs.models import (User, Employer, Applicant, Area, EmploymentType, RecruitmentPost, JobApplication, Status,
                          Skill, Notification, UserNotification,
-                         Career, Comment, Rating, Like)
+                         Career, Review, Like)
 from django import forms
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 import cloudinary
@@ -235,62 +235,73 @@ class SkillAdmin(admin.ModelAdmin):
 class CareerAdmin(admin.ModelAdmin):
     list_display = ['id', 'name']
 
-class CommentInline(admin.StackedInline):
-    model = Comment  # Chỉ định rằng InlineAdmin này sẽ hiển thị các comment con của một comment cha.
-    fk_name = 'parent'  # Chỉ định khóa ngoại liên kết các comment con với comment cha là parent.
-    extra = 0  # Không hiển thị trường để thêm comment con mới khi chưa có comment cha.
-    # Chỉ định các trường sẽ hiển thị trong InlineAdmin.
-    fields = ['content', 'user', 'recruitment']
-    # Đánh dấu các trường applicant, employer, recruitment chỉ để đọc, không cho phép chỉnh sửa trong InlineAdmin.
-    readonly_fields = ['recruitment']
+# class CommentInline(admin.StackedInline):
+#     model = Comment  # Chỉ định rằng InlineAdmin này sẽ hiển thị các comment con của một comment cha.
+#     fk_name = 'parent'  # Chỉ định khóa ngoại liên kết các comment con với comment cha là parent.
+#     extra = 0  # Không hiển thị trường để thêm comment con mới khi chưa có comment cha.
+#     # Chỉ định các trường sẽ hiển thị trong InlineAdmin.
+#     fields = ['content', 'user', 'recruitment']
+#     # Đánh dấu các trường applicant, employer, recruitment chỉ để đọc, không cho phép chỉnh sửa trong InlineAdmin.
+#     readonly_fields = ['recruitment']
 
 
-class CommentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'content','interaction__user__username', 'interaction__recruitment__title','parent__interaction__user__username','parent__interaction__recruitment__title']
-    search_fields = ['id', 'user__username']
-    # 'user__username' : search_fields lấy thông tin thông qua kế thừa model -> khóa ngoại -> Nơi cần lấy thông tin
-    inlines = [CommentInline]
+# class CommentAdmin(admin.ModelAdmin):
+#     list_display = ['id', 'content','interaction__user__username', 'interaction__recruitment__title','parent__interaction__user__username','parent__interaction__recruitment__title']
+#     search_fields = ['id', 'user__username']
+#     # 'user__username' : search_fields lấy thông tin thông qua kế thừa model -> khóa ngoại -> Nơi cần lấy thông tin
+#     inlines = [CommentInline]
+#
+#     # Để cho list_display lấy thông tin: Thông qua kế thừa model -> Khóa ngoại -> Nơi cần lấy thông tin
+#     def interaction__user__username(self, obj):
+#         if obj.user:
+#             return obj.user.username
+#         return None
+#
+#     # # Vì lấy chung thông tin tới User nên phải viết thêm 1 hàm def
+#     # # Để cho list_display lấy thông tin: Thông qua kế thừa model -> Khóa ngoại -> Nơi cần lấy thông tin
+#     # def employer_username(self, obj):
+#     #     if obj.employer:
+#     #         return obj.employer.user.username
+#     #     return None
+#
+#     def parent__interaction__user__username(self, obj):
+#         if obj.parent:
+#             return obj.parent.user.username
+#         return None
+#
+#     def parent__interaction__recruitment__title(self, obj):
+#         if obj.parent:
+#             return obj.parent.recruitment.title
+#         return None
+#
+#     # Để cho list_display lấy thông tin: Thông qua kế thừa model -> Khóa ngoại -> Nơi lấy thông tin
+#     def interaction__recruitment__title(self, obj):
+#         if obj.recruitment:
+#             return obj.recruitment.title
+#         return None
 
-    # Để cho list_display lấy thông tin: Thông qua kế thừa model -> Khóa ngoại -> Nơi cần lấy thông tin
-    def interaction__user__username(self, obj):
-        if obj.user:
-            return obj.user.username
-        return None
-
-    # # Vì lấy chung thông tin tới User nên phải viết thêm 1 hàm def
-    # # Để cho list_display lấy thông tin: Thông qua kế thừa model -> Khóa ngoại -> Nơi cần lấy thông tin
-    # def employer_username(self, obj):
-    #     if obj.employer:
-    #         return obj.employer.user.username
-    #     return None
-
-    def parent__interaction__user__username(self, obj):
-        if obj.parent:
-            return obj.parent.user.username
-        return None
-
-    def parent__interaction__recruitment__title(self, obj):
-        if obj.parent:
-            return obj.parent.recruitment.title
-        return None
-
-    # Để cho list_display lấy thông tin: Thông qua kế thừa model -> Khóa ngoại -> Nơi lấy thông tin
-    def interaction__recruitment__title(self, obj):
-        if obj.recruitment:
-            return obj.recruitment.title
-        return None
 
 
+# class RatingAdmin(admin.ModelAdmin):
+#     list_display = ['id', 'rating', 'user_username', 'interaction__recruitment__title']
+#     search_fields = ['id', 'rating', 'user__username', 'user__username']
+#
+#     def user_username(self, obj):
+#         if obj.user:
+#             return obj.user.username
+#         return None
+#
+#     def interaction__recruitment__title(self, obj):
+#         return obj.recruitment.title
 
-class RatingAdmin(admin.ModelAdmin):
-    list_display = ['id', 'rating', 'user_username', 'interaction__recruitment__title']
+
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ['id', 'rating', 'content', 'user_username', 'interaction__recruitment__title']
     search_fields = ['id', 'rating', 'user__username', 'user__username']
-
     def user_username(self, obj):
         if obj.user:
             return obj.user.username
         return None
-
     def interaction__recruitment__title(self, obj):
         return obj.recruitment.title
 
@@ -419,8 +430,9 @@ my_admin_site.register(JobApplication, JobApplicationAdmin),
 my_admin_site.register(Status, StatusAdmin),
 my_admin_site.register(Skill, SkillAdmin),
 my_admin_site.register(Career, CareerAdmin),
-my_admin_site.register(Comment, CommentAdmin),
-my_admin_site.register(Rating, RatingAdmin),
+# my_admin_site.register(Comment, CommentAdmin),
+# my_admin_site.register(Rating, RatingAdmin),
+my_admin_site.register(Review, ReviewAdmin),
 my_admin_site.register(Permission),
 my_admin_site.register(Like, LikeAdmin),
 my_admin_site.register(Notification, NotificationAdmin)
