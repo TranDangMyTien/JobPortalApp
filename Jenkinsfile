@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        // Đặt tên cho image Docker
+        IMAGE_NAME = "trandangmytien/ou-job:latest"
+        DOCKER_CREDENTIALS_ID = 'docker-hub'  // Đặt ID credentials cho Docker Hub
+    }
+
     stages {
         stage('Clone Code') {
             steps {
@@ -8,24 +14,46 @@ pipeline {
                 git branch: 'master', url: 'https://github.com/TranDangMyTien/JobPortalApp.git'
             }
         }
-        stage('Docker Build') {
+        stage('Docker Compose Build') {
             steps {
                 script {
-                    // Xây dựng Docker image với tag
-                    def imageName = "trandangmytien/ou-job:latest"
-                    // Sử dụng lệnh bat cho Windows
-                    bat "docker build -t ${imageName} ."
+                    // Xây dựng Docker image với docker-compose
+                    sh 'docker-compose build'
                 }
             }
         }
-        stage('Docker Hub') {
+        stage('Docker Compose Up') {
             steps {
-                withDockerRegistry(credentialsId: 'docker-hub', url: 'https://index.docker.io/v1/') {
-                    // Đẩy image lên Docker Hub
-                    // Sử dụng lệnh bat cho Windows
-                    bat "docker push ${imageName}"
+                script {
+                    // Khởi động container với docker-compose
+                    sh 'docker-compose up -d'
                 }
             }
+        }
+        stage('Run Migrations') {
+            steps {
+                script {
+                    // Chạy migrations
+                    sh 'docker-compose exec django python manage.py migrate'
+                }
+            }
+        }
+        stage('Docker Push to Hub') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: "${DOCKER_CREDENTIALS_ID}", url: 'https://index.docker.io/v1/') {
+                        // Tag và push image lên Docker Hub
+                        sh "docker tag ${IMAGE_NAME} trandangmytien/ou-job:latest"
+                        sh "docker push trandangmytien/ou-job:latest"
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            // Tắt các container sau khi hoàn thành
+            sh 'docker-compose down'
         }
     }
 }
