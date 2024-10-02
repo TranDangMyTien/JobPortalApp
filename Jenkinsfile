@@ -74,8 +74,8 @@ pipeline {
             steps {
                 script {
                     bat 'docker-compose up -d'
-                    // Thêm một khoảng thời gian chờ để đảm bảo các container đã khởi động
-                    bat 'timeout /t 30'
+                    // Thay thế lệnh timeout bằng sleep của Groovy
+                    sleep(time: 30, unit: 'SECONDS')
                 }
             }
         }
