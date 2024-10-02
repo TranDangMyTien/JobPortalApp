@@ -53,10 +53,21 @@ pipeline {
                     echo "Django Settings Module is ${env.DJANGO_SETTINGS_MODULE}"
 
                     // In ra tất cả các biến môi trường
-                    bat 'set'  // Sử dụng 'set' thay vì 'printenv'
+//                     bat 'set'
                 }
             }
         }
+
+        stage('Cleanup Docker') {
+            steps {
+                script {
+                    // Xóa container cũ nếu đã tồn tại để tránh xung đột
+                    bat 'docker rm -f redis_ou_job || true'
+                    bat 'docker rm -f mysql_ou_job || true'
+                }
+            }
+        }
+
         stage('Docker Compose Build') {
             steps {
                 script {
