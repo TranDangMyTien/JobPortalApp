@@ -18,7 +18,7 @@ pipeline {
             steps {
                 script {
                     // Xây dựng Docker image với docker-compose
-                    sh 'docker-compose build'
+                    bat 'docker-compose build'
                 }
             }
         }
@@ -26,7 +26,7 @@ pipeline {
             steps {
                 script {
                     // Khởi động container với docker-compose
-                    sh 'docker-compose up -d'
+                    bat 'docker-compose up -d'
                 }
             }
         }
@@ -34,7 +34,7 @@ pipeline {
             steps {
                 script {
                     // Chạy migrations
-                    sh 'docker-compose exec django python manage.py migrate'
+                    bat 'docker-compose exec django python manage.py migrate'
                 }
             }
         }
@@ -43,8 +43,8 @@ pipeline {
                 script {
                     withDockerRegistry(credentialsId: "${DOCKER_CREDENTIALS_ID}", url: 'https://index.docker.io/v1/') {
                         // Tag và push image lên Docker Hub
-                        sh "docker tag ${IMAGE_NAME} trandangmytien/ou-job:latest"
-                        sh "docker push trandangmytien/ou-job:latest"
+                        bat "docker tag ${IMAGE_NAME} trandangmytien/ou-job:latest"
+                        bat "docker push trandangmytien/ou-job:latest"
                     }
                 }
             }
@@ -53,7 +53,7 @@ pipeline {
     post {
         always {
             // Tắt các container sau khi hoàn thành
-            sh 'docker-compose down'
+            bat 'docker-compose down'
         }
     }
 }
