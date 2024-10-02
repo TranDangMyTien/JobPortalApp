@@ -25,3 +25,5 @@ docker images
 docker tag jobportal-django:latest trandangmytien/ou-job:latest
 docker login
 docker push trandangmytien/ou-job:latest
+
+Mỗi khi chạy ngrok thì sinh ra link mới
