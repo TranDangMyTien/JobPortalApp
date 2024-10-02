@@ -52,6 +52,16 @@ pipeline {
             }
         }
 
+        stage('Check Entrypoint') {
+            steps {
+                script {
+                    bat 'type entrypoint.sh'
+                    bat 'dir'
+                }
+            }
+        }
+
+
         stage('Cleanup Docker') {
             steps {
                 script {
@@ -74,8 +84,7 @@ pipeline {
             steps {
                 script {
                     bat 'docker-compose up -d'
-                    // Thay thế lệnh timeout bằng sleep của Groovy
-                    sleep(time: 30, unit: 'SECONDS')
+                    sleep(time: 60, unit: 'SECONDS')  // Tăng thời gian chờ lên 60 giây
                 }
             }
         }
@@ -96,14 +105,14 @@ pipeline {
             }
         }
 
-        stage('Run Migrations') {
-            steps {
-                script {
-                    // Sử dụng 'run' thay vì 'exec'
-                    bat 'docker-compose run django python manage.py migrate'
-                }
-            }
-        }
+//         stage('Run Migrations') {
+//             steps {
+//                 script {
+//                     // Sử dụng 'run' thay vì 'exec'
+//                     bat 'docker-compose run django python manage.py migrate'
+//                 }
+//             }
+//         }
 
         stage('Docker Push to Hub') {
             steps {
