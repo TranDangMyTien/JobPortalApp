@@ -9,14 +9,13 @@ pipeline {
     stages {
         stage('Clone Code') {
             steps {
-                // Clone project từ repository
                 git branch: 'master', url: 'https://github.com/TranDangMyTien/JobPortalApp.git'
             }
         }
+
         stage('Create .env File') {
             steps {
                 script {
-                    // Tạo file .env từ các biến môi trường đã định nghĩa trong Jenkins
                     def envContent = """
                     DATABASE_NAME=${env.DATABASE_NAME}
                     DATABASE_USER=${env.DATABASE_USER}
@@ -34,16 +33,14 @@ pipeline {
                     SECRET_KEY=${env.SECRET_KEY}
                     DJANGO_SETTINGS_MODULE=${env.DJANGO_SETTINGS_MODULE}
                     """
-
-                    // Ghi nội dung vào file .env trong thư mục gốc của dự án
                     writeFile file: '.env', text: envContent
                 }
             }
         }
+
         stage('Build') {
             steps {
                 script {
-                    // In ra các biến môi trường
                     echo "Database Name is ${env.DATABASE_NAME}"
                     echo "Database User is ${env.DATABASE_USER}"
                     echo "Database Host is ${env.DATABASE_HOST}"
@@ -51,9 +48,6 @@ pipeline {
                     echo "OAuth2 ID is ${env.OAUTH2_ID}"
                     echo "Email User is ${env.EMAIL_USER}"
                     echo "Django Settings Module is ${env.DJANGO_SETTINGS_MODULE}"
-
-                    // In ra tất cả các biến môi trường
-//                     bat 'set'
                 }
             }
         }
@@ -61,7 +55,6 @@ pipeline {
         stage('Cleanup Docker') {
             steps {
                 script {
-                    // Xóa container tồn tại nếu có để tránh xung đột
                     bat 'docker rm -f django_ou_job || true'
                     bat 'docker rm -f redis_ou_job || true'
                     bat 'docker rm -f mysql_ou_job || true'
@@ -72,32 +65,50 @@ pipeline {
         stage('Docker Compose Build') {
             steps {
                 script {
-                    // Xây dựng Docker image với docker-compose
                     bat 'docker-compose build'
                 }
             }
         }
+
         stage('Docker Compose Up') {
             steps {
                 script {
-                    // Khởi động container với docker-compose
                     bat 'docker-compose up -d'
+                    // Thêm một khoảng thời gian chờ để đảm bảo các container đã khởi động
+                    bat 'timeout /t 30'
                 }
             }
         }
+
+        stage('Check Container Status') {
+            steps {
+                script {
+                    bat 'docker-compose ps'
+                }
+            }
+        }
+
+        stage('Check Django Logs') {
+            steps {
+                script {
+                    bat 'docker-compose logs django'
+                }
+            }
+        }
+
         stage('Run Migrations') {
             steps {
                 script {
-                    // Chạy migrations
-                    bat 'docker-compose exec django python manage.py migrate'
+                    // Sử dụng 'run' thay vì 'exec'
+                    bat 'docker-compose run django python manage.py migrate'
                 }
             }
         }
+
         stage('Docker Push to Hub') {
             steps {
                 script {
                     withDockerRegistry(credentialsId: "${DOCKER_CREDENTIALS_ID}", url: 'https://index.docker.io/v1/') {
-                        // Tag và push image lên Docker Hub
                         bat "docker tag ${IMAGE_NAME} trandangmytien/ou-job:latest"
                         bat "docker push trandangmytien/ou-job:latest"
                     }
@@ -107,7 +118,6 @@ pipeline {
     }
     post {
         always {
-            // Tắt các container sau khi hoàn thành
             bat 'docker-compose down'
         }
     }
