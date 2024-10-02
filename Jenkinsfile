@@ -61,7 +61,8 @@ pipeline {
         stage('Cleanup Docker') {
             steps {
                 script {
-                    // Xóa container cũ nếu đã tồn tại để tránh xung đột
+                    // Xóa container tồn tại nếu có để tránh xung đột
+                    bat 'docker rm -f django_ou_job || true'
                     bat 'docker rm -f redis_ou_job || true'
                     bat 'docker rm -f mysql_ou_job || true'
                 }
