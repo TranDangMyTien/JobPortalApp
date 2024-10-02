@@ -53,7 +53,7 @@ pipeline {
                     echo "Django Settings Module is ${env.DJANGO_SETTINGS_MODULE}"
 
                     // In ra tất cả các biến môi trường
-                    bat 'printenv'
+                    bat 'set'  // Sử dụng 'set' thay vì 'printenv'
                 }
             }
         }
