@@ -1,0 +1,204 @@
+{% extends 'admin/base_site.html' %}
+
+{% block branding %}
+<h1>Job management system</h1>
+{% endblock %}
+
+{% block title %}
+Thống kê | By Mtie
+{% endblock %}
+
+
+{% block extrahead %}
+<style>
+    body {
+        font-family: "Times New Roman", Times, serif;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+        text-align: center; /* Add this line */
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+<!--    tr:nth-child(even) {-->
+<!--        background-color: #f2f2f2;-->
+<!--    }-->
+
+    tr:hover {
+        background-color: #ddd;
+    }
+</style>
+{% endblock %}
+
+
+
+{% block content %}
+<h1 class="center-text" >THỐNG KÊ - BÁO CÁO ĐƠN ỨNG TUYỂN TRÊN HỆ THỐNG</h1>
+
+
+<div class="quarterly-report">
+    <h2>Report quarterly student job applications</h2>
+    <table border="1">
+        <thead>
+        <tr>
+            <th style="text-align: center; vertical-align: middle;">Career</th>
+            <th style="text-align: center; vertical-align: middle;">Quarter</th>
+            <th style="text-align: center; vertical-align: middle;">Year</th>
+            <th style="text-align: center; vertical-align: middle;">Total Applications</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in queryset %}
+        <tr>
+            <td style="text-align: center; vertical-align: middle;">{{item.recruitment__career__name}}</td>
+            <td style="text-align: center; vertical-align: middle;">{{item.quarter}}</td>
+            <td style="text-align: center; vertical-align: middle;">{{item.year}}</td>
+            <td style="text-align: center; vertical-align: middle;">{{item.total_applications}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="recruitment-posts">
+    <h2>Recruitment Posts with Female Applicants</h2>
+    <table border="1">
+        <thead>
+        <tr>
+            <th style="text-align: center; vertical-align: middle;">ID</th>
+            <th style="text-align: center; vertical-align: middle;">Title</th>
+            <th style="text-align: center; vertical-align: middle;">Number of Female Applicants</th>
+            <th style="text-align: center; vertical-align: middle;">Total Applications</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        {% for female_post in femaleApply %}
+        <tr>
+            <td style="text-align: center; vertical-align: middle;">{{ female_post.id }}</td>
+            <td style="text-align: center; vertical-align: middle;">{{ female_post.title }}</td>
+            <td style="text-align: center; vertical-align: middle;">{{ female_post.num_female_applicants }}</td>
+            <td style="text-align: center; vertical-align: middle;">{{ female_post.total_applications }}</td>
+        </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+</div>
+
+<h2>Chart: Report quarterly student job applications</h2>
+<canvas id="myChart"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    window.onload = () => {
+       var ctx = document.getElementById('myChart').getContext('2d');
+       var chartData = {
+           labels: [{% for item in queryset %}"{{ item.recruitment__career__name }} - Q{{ item.quarter }} {{ item.year }}",{% endfor %}],
+           datasets: [{
+              label: 'Student job applications',
+              data: [{% for item in queryset %}{{ item.total_applications }},{% endfor %}],
+              backgroundColor: [
+                //   'rgba(255, 159, 64, 0.2)',
+                //   'rgba(153, 102, 255, 0.2)',
+                //   'rgba(75, 192, 192, 0.2)',
+                //   'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
+               ],
+               borderColor: [
+                //   'rgba(255, 159, 64, 1)',
+                //   'rgba(153, 102, 255, 1)',
+                //   'rgba(75, 192, 192, 1)',
+                //   'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 159, 64, 1)'
+               ],
+               borderWidth: 1
+           }]
+       };
+       var myChart = new Chart(ctx, {
+           type: 'bar',
+           data: chartData,
+           options: {
+               scales: {
+                   yAxes: [{
+                       ticks: {
+                           beginAtZero: true
+                       }
+                   }]
+               }
+           }
+       });
+
+    }
+</script>
+
+<h2>Chart: Number of Female Applicants and  Total number of job applications per RecruitmentPost</h2>
+
+<canvas id="femaleApplicantsChart"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    var ctxFemale = document.getElementById('femaleApplicantsChart').getContext('2d');
+    var myChartFemale = new Chart(ctxFemale, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for post in femaleApply %}
+                    "{{ post.title }}",
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Number of Female Applicants',
+                data: [
+                    {% for post in femaleApply %}
+                        {{ post.num_female_applicants }},
+                    {% endfor %}
+                ],
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Total Applications',
+                data: [
+                    {% for post in femaleApply %}
+                        {{ post.total_applications }},
+                    {% endfor %}
+                ],
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+</script>
+
+
+
+{% endblock %}

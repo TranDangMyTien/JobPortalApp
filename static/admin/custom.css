@@ -1,0 +1,11 @@
+/* Giảm kích thước hình ảnh logo đăng nhập */
+.brand-logo {
+    width: 150px; /* Đặt kích thước mong muốn */
+    height: auto; /* Đảm bảo giữ nguyên tỷ lệ */
+}
+
+/* Giảm kích thước hình ảnh logo khi đăng xuất */
+.login-logo, .logout-logo {
+    width: 100px; /* Đặt kích thước mong muốn */
+    height: auto; /* Đảm bảo giữ nguyên tỷ lệ */
+}
