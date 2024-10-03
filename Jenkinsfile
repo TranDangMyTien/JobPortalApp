@@ -61,13 +61,24 @@ pipeline {
             }
         }
 
+        stages {
+            stage('Check Docker Access') {
+                steps {
+                    script {
+                        sh 'docker --version'
+                        sh 'docker ps'
+                    }
+                }
+            }
+        }
+
 
         stage('Cleanup Docker') {
             steps {
                 script {
-                    bat 'docker rm -f django_ou_job || true'
-                    bat 'docker rm -f redis_ou_job || true'
-                    bat 'docker rm -f mysql_ou_job || true'
+                    bat 'docker ps -q --filter "name=django_ou_job" | findstr /v "^$" && docker rm -f django_ou_job || echo "Container django_ou_job not found"'
+                    bat 'docker ps -q --filter "name=redis_ou_job" | findstr /v "^$" && docker rm -f redis_ou_job || echo "Container redis_ou_job not found"'
+                    bat 'docker ps -q --filter "name=mysql_ou_job" | findstr /v "^$" && docker rm -f mysql_ou_job || echo "Container mysql_ou_job not found"'
                 }
             }
         }
@@ -84,7 +95,7 @@ pipeline {
             steps {
                 script {
                     bat 'docker-compose up -d'
-                    sleep(time: 60, unit: 'SECONDS')  // Tăng thời gian chờ lên 60 giây
+                    sleep(time: 90, unit: 'SECONDS')  // Tăng thời gian chờ lên 60 giây
                 }
             }
         }
