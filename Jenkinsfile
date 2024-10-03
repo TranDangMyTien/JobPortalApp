@@ -61,16 +61,16 @@ pipeline {
             }
         }
 
-        stages {
-            stage('Check Docker Access') {
-                steps {
-                    script {
-                        bat 'docker --version'
-                        bat 'docker ps'
-                    }
+
+        stage('Check Docker Access') {
+            steps {
+                script {
+                    bat 'docker --version'
+                    bat 'docker ps'
                 }
             }
         }
+
 
 
         stage('Cleanup Docker') {
