@@ -142,3 +142,5 @@ pipeline {
         }
     }
 }
+
+// Nhớ bật Docker Desktop lên
