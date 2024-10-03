@@ -65,8 +65,8 @@ pipeline {
             stage('Check Docker Access') {
                 steps {
                     script {
-                        sh 'docker --version'
-                        sh 'docker ps'
+                        bat 'docker --version'
+                        bat 'docker ps'
                     }
                 }
             }
