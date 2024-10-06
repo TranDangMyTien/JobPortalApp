@@ -62,7 +62,7 @@ pipeline {
         }
 
 
-//     Kiểm tra Docker 
+//     Kiểm tra Docker
         stage('Check Docker Access') {
             steps {
                 script {
@@ -132,7 +132,12 @@ pipeline {
     post {
         always {
             script {
-                bat 'docker-compose down || echo "Docker Compose down failed but ignored"'
+                def downResult = bat(returnStatus: true, script: 'docker-compose down')
+                if (downResult != 0) {
+                    echo "Docker Compose down failed, but ignored"
+                } else {
+                    echo "Docker Compose down completed successfully"
+                }
             }
         }
         failure {
