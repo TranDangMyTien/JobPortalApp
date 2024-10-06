@@ -38,19 +38,19 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                script {
-                    echo "Database Name is ${env.DATABASE_NAME}"
-                    echo "Database User is ${env.DATABASE_USER}"
-                    echo "Database Host is ${env.DATABASE_HOST}"
-                    echo "Cloud Name is ${env.CLOUD_NAME}"
-                    echo "OAuth2 ID is ${env.OAUTH2_ID}"
-                    echo "Email User is ${env.EMAIL_USER}"
-                    echo "Django Settings Module is ${env.DJANGO_SETTINGS_MODULE}"
-                }
-            }
-        }
+//         stage('Build') {
+//             steps {
+//                 script {
+//                     echo "Database Name is ${env.DATABASE_NAME}"
+//                     echo "Database User is ${env.DATABASE_USER}"
+//                     echo "Database Host is ${env.DATABASE_HOST}"
+//                     echo "Cloud Name is ${env.CLOUD_NAME}"
+//                     echo "OAuth2 ID is ${env.OAUTH2_ID}"
+//                     echo "Email User is ${env.EMAIL_USER}"
+//                     echo "Django Settings Module is ${env.DJANGO_SETTINGS_MODULE}"
+//                 }
+//             }
+//         }
 
         stage('Check Entrypoint') {
             steps {
@@ -74,15 +74,15 @@ pipeline {
 
 
 
-        stage('Cleanup Docker') {
-            steps {
-                script {
-                    bat 'docker ps -q --filter "name=django_ou_job" | findstr /v "^$" && docker rm -f django_ou_job || echo "Container django_ou_job not found"'
-                    bat 'docker ps -q --filter "name=redis_ou_job" | findstr /v "^$" && docker rm -f redis_ou_job || echo "Container redis_ou_job not found"'
-                    bat 'docker ps -q --filter "name=mysql_ou_job" | findstr /v "^$" && docker rm -f mysql_ou_job || echo "Container mysql_ou_job not found"'
-                }
-            }
-        }
+//         stage('Cleanup Docker') {
+//             steps {
+//                 script {
+//                     bat 'docker ps -q --filter "name=django_ou_job" | findstr /v "^$" && docker rm -f django_ou_job || echo "Container django_ou_job not found"'
+//                     bat 'docker ps -q --filter "name=redis_ou_job" | findstr /v "^$" && docker rm -f redis_ou_job || echo "Container redis_ou_job not found"'
+//                     bat 'docker ps -q --filter "name=mysql_ou_job" | findstr /v "^$" && docker rm -f mysql_ou_job || echo "Container mysql_ou_job not found"'
+//                 }
+//             }
+//         }
 
         stage('Docker Compose Build') {
             steps {
