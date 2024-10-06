@@ -87,7 +87,7 @@ pipeline {
         stage('Docker Compose Build') {
             steps {
                 script {
-                    bat 'docker-compose build'
+                    bat 'docker-compose build || (echo "Docker Compose build failed" && exit 1)'
                 }
             }
         }
@@ -95,7 +95,7 @@ pipeline {
         stage('Docker Compose Up') {
             steps {
                 script {
-                    bat 'docker-compose up -d'
+                    bat 'docker-compose up -d || (echo "Docker Compose up failed" && exit 1)'
                     sleep(time: 90, unit: 'SECONDS')
                 }
             }
@@ -112,7 +112,7 @@ pipeline {
         stage('Check Django Logs') {
             steps {
                 script {
-                    bat 'docker-compose logs django'
+                    bat 'docker-compose logs django || echo "Failed to retrieve Django logs"'
                 }
             }
         }
@@ -131,7 +131,12 @@ pipeline {
     }
     post {
         always {
-            bat 'docker-compose down'
+            script {
+                bat 'docker-compose down || echo "Docker Compose down failed"'
+            }
+        }
+        failure {
+            echo 'The pipeline failed. Check the logs for details.'
         }
     }
 }
