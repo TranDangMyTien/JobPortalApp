@@ -141,4 +141,9 @@ pipeline {
     }
 }
 
-// Nhớ bật Docker Desktop lên
+// Nhớ bật Docker Desktop lên và xóa đi cái cũ trước đó
+
+// docker-compose down giúp dọn dẹp môi trường, đảm bảo không có container hoặc network cũ còn
+// sót lại.
+// Tránh xung đột giữa các lần chạy pipeline.
+// Giải phóng tài nguyên hệ thống.
