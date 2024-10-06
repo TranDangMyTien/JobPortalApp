@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "trandangmytien/ou-job:latest"
-        DOCKER_CREDENTIALS_ID = 'docker-hub'  // ID credentials cho Docker Hub
+        DOCKER_CREDENTIALS_ID = 'dockerPass'  // ID credentials cho Docker Hub
     }
 
     stages {
