@@ -5,7 +5,7 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from jobs.models import (User, Employer, Applicant, Area, EmploymentType, RecruitmentPost, JobApplication, Status,
                          Skill, Notification, UserNotification,
-                         Career, Review, Like, PasswordResetToken, Chat, Message)
+                         Career, Review, PasswordResetToken, Message, Chat)
 from django import forms
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 import cloudinary

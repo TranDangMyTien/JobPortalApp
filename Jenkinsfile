@@ -62,6 +62,7 @@ pipeline {
         }
 
 
+//     Kiểm tra Docker 
         stage('Check Docker Access') {
             steps {
                 script {
@@ -95,7 +96,7 @@ pipeline {
             steps {
                 script {
                     bat 'docker-compose up -d'
-                    sleep(time: 90, unit: 'SECONDS')  // Tăng thời gian chờ lên 60 giây
+                    sleep(time: 90, unit: 'SECONDS')
                 }
             }
         }
@@ -116,25 +117,17 @@ pipeline {
             }
         }
 
-//         stage('Run Migrations') {
+
+//         stage('Docker Push to Hub') {
 //             steps {
 //                 script {
-//                     // Sử dụng 'run' thay vì 'exec'
-//                     bat 'docker-compose run django python manage.py migrate'
+//                     withDockerRegistry(credentialsId: "${DOCKER_CREDENTIALS_ID}", url: 'https://index.docker.io/v1/') {
+//                         bat "docker tag ${IMAGE_NAME} trandangmytien/ou-job:latest"
+//                         bat "docker push trandangmytien/ou-job:latest"
+//                     }
 //                 }
 //             }
 //         }
-
-        stage('Docker Push to Hub') {
-            steps {
-                script {
-                    withDockerRegistry(credentialsId: "${DOCKER_CREDENTIALS_ID}", url: 'https://index.docker.io/v1/') {
-                        bat "docker tag ${IMAGE_NAME} trandangmytien/ou-job:latest"
-                        bat "docker push trandangmytien/ou-job:latest"
-                    }
-                }
-            }
-        }
     }
     post {
         always {
