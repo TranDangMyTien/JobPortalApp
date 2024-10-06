@@ -118,16 +118,16 @@ pipeline {
         }
 
 
-        stage('Docker Push to Hub') {
-            steps {
-                script {
-                    withDockerRegistry(credentialsId: "${DOCKER_CREDENTIALS_ID}", url: 'https://index.docker.io/v1/') {
-                        bat "docker tag ${IMAGE_NAME} trandangmytien/ou-job:latest"
-                        bat "docker push trandangmytien/ou-job:latest"
-                    }
-                }
-            }
-        }
+//         stage('Docker Push to Hub') {
+//             steps {
+//                 script {
+//                     withDockerRegistry(credentialsId: "${DOCKER_CREDENTIALS_ID}", url: 'https://index.docker.io/v1/') {
+//                         bat "docker tag ${IMAGE_NAME} trandangmytien/ou-job:latest"
+//                         bat "docker push trandangmytien/ou-job:latest"
+//                     }
+//                 }
+//             }
+//         }
     }
     post {
         always {
