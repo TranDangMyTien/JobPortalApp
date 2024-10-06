@@ -132,7 +132,7 @@ pipeline {
     post {
         always {
             script {
-                bat 'docker-compose down || echo "Docker Compose down failed"'
+                bat 'docker-compose down || echo "Docker Compose down failed but ignored"'
             }
         }
         failure {
