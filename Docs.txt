@@ -27,3 +27,8 @@ docker login
 docker push trandangmytien/ou-job:latest
 
 Mỗi khi chạy ngrok thì sinh ra link mới => Tìm cách để nó ăn 1 link (deploy lên đâu đó)
+
+
+Bên Heroku
+mytien.2682003@gmail.com
+mtieABCD268!
