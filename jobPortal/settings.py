@@ -157,46 +157,46 @@ AUTH_USER_MODEL = 'jobs.User'
 
 # Cấu hình này cho biết Django Channels sẽ sử dụng Redis làm backend cho hệ thống channel layer.
 # Cấu hình CHANNEL_LAYERS sử dụng Redis làm backend cho channel layer
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels_redis.core.RedisChannelLayer",
-#         "CONFIG": {
-#             "hosts": [("127.0.0.1", 6379)],
-#         },
-#     },
-# }
-#
-# # Cấu hình Redis cho cache
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://127.0.0.1:6379/1",  # Đường dẫn đến Redis server và database số 1
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#         }
-#     }
-# }
-
-
-# Khi chạy DOCKER
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("redis", 6379)],
+            "hosts": [("127.0.0.1", 6379)],
         },
     },
 }
 
+# Cấu hình Redis cho cache
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://redis:6379/1",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # Đường dẫn đến Redis server và database số 1
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
 }
+
+
+# # Khi chạy DOCKER
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("redis", 6379)],
+#         },
+#     },
+# }
+#
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://redis:6379/1",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#         }
+#     }
+# }
 
 
 # Database
@@ -211,12 +211,12 @@ DATABASES = {
         'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
         # Mặc định là Localhot
 
-        # # Không sử dụng Docker
-        # 'HOST': '',
+        # Không sử dụng Docker
+        'HOST': '',
 
-        # Chạy trên DOCKER
-        'HOST': 'mysql',
-        'PORT': '3306',
+        # # Chạy trên DOCKER
+        # 'HOST': 'mysql',
+        # 'PORT': '3306',
     }
 }
 
