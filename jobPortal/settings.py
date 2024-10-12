@@ -226,15 +226,15 @@ CACHES = {
 # }
 
 # DEPLOY
+# Cấu hình trực tiếp cho cơ sở dữ liệu
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        # Tạo csdl mới tên là ecoursesdb
-        'NAME': os.environ.get('DATABASE_NAME'),
-        'USER': os.environ.get('DATABASE_USER'),
-        'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
-        'HOST': os.environ.get('DATABASE_HOST'),
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.mysql',  # Sử dụng MySQL
+        'NAME': 'gijfsd6rw0sxoast',             # Tên cơ sở dữ liệu
+        'USER': 'kn8z0gwctm9u8n74',             # Tên người dùng
+        'PASSWORD': 'x57pxu95i550iae7',         # Mật khẩu
+        'HOST': 'lyl3nln24eqcxxot.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',  # Địa chỉ máy chủ
+        'PORT': '3306',                         # Cổng kết nối
     }
 }
 
