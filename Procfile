@@ -1,1 +1,1 @@
-web: /entrypoint.sh
+web: gunicorn jobPortal.wsgi:application --log-file -
