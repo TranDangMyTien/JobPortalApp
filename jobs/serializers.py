@@ -623,17 +623,7 @@ class ReviewStatusSerializer(serializers.Serializer):
         fields = ("hasReviewed",)
 
 
-# class MessageSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Message
-#         fields = ['id', 'sender', 'text', 'created_at']
-#
-# class ChatSerializer(serializers.ModelSerializer):
-#     messages = MessageSerializer(many=True, read_only=True)
-#
-#     class Meta:
-#         model = Chat
-#         fields = ['id', 'applicant', 'employer', 'messages', 'created_at']
+
 
 
 class MessageSerializer(serializers.ModelSerializer):
