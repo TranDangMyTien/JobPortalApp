@@ -178,21 +178,24 @@ AUTH_USER_MODEL = 'jobs.User'
 #     }
 # }
 
-
-# Khi chạy DOCKER
+# DEPLOY
+# Lấy REDISCLOUD_URL từ biến môi trường
+REDIS_URL = os.environ.get('REDISCLOUD_URL')
+# Cấu hình CHANNEL_LAYERS
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("redis", 6379)],
+            "hosts": [(REDIS_URL, 0)],  # Sử dụng REDIS_URL
         },
     },
 }
 
+# Cấu hình CACHES
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://redis:6379/1",
+        "LOCATION": REDIS_URL,  # Sử dụng REDIS_URL
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -223,6 +226,7 @@ CACHES = {
 # }
 
 # DEPLOY
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -237,7 +241,7 @@ DATABASES = {
 
         # Chạy trên DOCKER
         'HOST': os.environ.get('DATABASE_HOST'),
-        'PORT': '3306',
+        'PORT': '16230',
     }
 }
 
