@@ -226,24 +226,26 @@ CACHES = {
 # }
 
 # DEPLOY
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         # Tạo csdl mới tên là ecoursesdb
+#         'NAME': os.environ.get('DATABASE_NAME'),
+#         'USER': os.environ.get('DATABASE_USER'),
+#         'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
+#         'HOST': os.environ.get('DATABASE_HOST'),
+#         'PORT': '16230',
+#     }
+# }
 
+import os
+import dj_database_url
+# Lấy URL kết nối từ biến môi trường JAWSDB_URL
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        # Tạo csdl mới tên là ecoursesdb
-        'NAME': os.environ.get('DATABASE_NAME'),
-        'USER': os.environ.get('DATABASE_USER'),
-        'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
-        # Mặc định là Localhot
-
-        # # Không sử dụng Docker
-        # 'HOST': '',
-
-        # Chạy trên DOCKER
-        'HOST': os.environ.get('DATABASE_HOST'),
-        'PORT': '16230',
-    }
+    'default': dj_database_url.config(default=os.environ.get('JAWSDB_URL'))
 }
+
+
 
 # Phần upload ảnh lên Cloudinary
 import cloudinary

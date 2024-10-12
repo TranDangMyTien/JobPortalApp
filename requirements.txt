@@ -16,6 +16,7 @@ cssselect==1.2.0
 cssutils==2.11.1
 daphne==4.1.2
 defusedxml==0.8.0rc2
+dj-config-url==0.1.1
 dj-rest-auth==6.0.0
 Django==4.2.11
 django-admin-adminlte==1.0.5
