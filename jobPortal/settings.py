@@ -203,6 +203,26 @@ CACHES = {
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# LOCAL VÀ JENKINS CI/CD DOCKER
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         # Tạo csdl mới tên là ecoursesdb
+#         'NAME': os.environ.get('DATABASE_NAME'),
+#         'USER': os.environ.get('DATABASE_USER'),
+#         'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
+#         # Mặc định là Localhot
+#
+#         # # Không sử dụng Docker
+#         # 'HOST': '',
+#
+#         # Chạy trên DOCKER
+#         'HOST': 'mysql',
+#         'PORT': '3306',
+#     }
+# }
+
+# DEPLOY
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -216,7 +236,7 @@ DATABASES = {
         # 'HOST': '',
 
         # Chạy trên DOCKER
-        'HOST': 'mysql',
+        'HOST': os.environ.get('DATABASE_HOST'),
         'PORT': '3306',
     }
 }
