@@ -157,10 +157,33 @@ AUTH_USER_MODEL = 'jobs.User'
 
 # Cấu hình này cho biết Django Channels sẽ sử dụng Redis làm backend cho hệ thống channel layer.
 # Cấu hình CHANNEL_LAYERS sử dụng Redis làm backend cho channel layer
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("127.0.0.1", 6379)],
+#         },
+#     },
+# }
+#
+# # Cấu hình Redis cho cache
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379/1",  # Đường dẫn đến Redis server và database số 1
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#         }
+#     }
+# }
+
+
+# Khi chạy DOCKER
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
+            "hosts": [("redis", 6379)],
         },
     },
 }
@@ -168,6 +191,7 @@ CHANNEL_LAYERS = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -175,7 +199,8 @@ CACHES = {
 }
 
 
-
+# Database
+# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
@@ -186,7 +211,12 @@ DATABASES = {
         'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
         # Mặc định là Localhot
 
+        # # Không sử dụng Docker
+        # 'HOST': '',
 
+        # Chạy trên DOCKER
+        'HOST': 'mysql',
+        'PORT': '3306',
     }
 }
 
@@ -314,6 +344,7 @@ JAZZMIN_SETTINGS = {
     # icon trên thanh bookmarks
     "site_icon": "images/PersonalBrandLogo_Circle.png",
     "welcome_sign": "Welcome to Job Management System Admin Panel",
+    "copyright": "  Job Management System  |  Trần Đặng Mỹ Tiên",
 
     # Tìm kiếm
     "search_model": [
@@ -326,8 +357,11 @@ JAZZMIN_SETTINGS = {
     # Menu phía trên với các liên kết quan trọng
     "topmenu_links": [
         {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"], "icon": "fas fa-tachometer-alt"},
+        {"name": "Basic Statistics", "url": "/myadmin/stats/", "icon": "fas fa-chart-line", "permissions": ["analytics.view_stats"]},
         {"name": "Salary Search", "url": "/myadmin/search/", "icon": "fas fa-search-dollar"},
         {"name": "Email", "url": "/myadmin/mail/", "icon": "fas fa-envelope"},
+        {"name": "Job Market Stats", "url": "/myadmin/job_market_stats/", "icon": "fas fa-chart-pie"},
+        {"name": "Analysis Results", "url": "/myadmin/analysis-results/", "icon": "fas fa-clipboard-list"}
     ],
 
     # Menu người dùng (góc trên phải)
@@ -428,3 +462,8 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success",
     },
 }
+
+STRIPE_TEST_PUBLIC_KEY = os.environ.get('STRIPE_TEST_PUBLIC_KEY')
+STRIPE_TEST_SECRET_KEY = os.environ.get('STRIPE_TEST_SECRET_KEY')
+#
+SITE_URL='http://192.168.1.56:8000'
