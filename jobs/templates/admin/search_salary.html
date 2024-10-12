@@ -1,0 +1,106 @@
+{% extends 'admin/base_site.html' %}
+
+{% block branding %}
+<h1>Search salaries by recruitment post</h1>
+{% endblock %}
+
+{% block title %}
+Search Salary | By Mtie
+{% endblock %}
+
+
+{% block extrahead %}
+<style>
+    body {
+        font-family: "Times New Roman", Times, serif;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+    }
+
+    form {
+        margin-bottom: 20px;
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    input[type="number"] {
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        margin-right: 10px;
+    }
+
+    button[type="submit"] {
+        padding: 5px 10px;
+        border: none;
+        background-color: #007bff;
+        color: #fff;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+<!--    tr:nth-child(even) {-->
+<!--        background-color: #f2f2f2;-->
+<!--    }-->
+
+    tr:hover {
+        background-color: #ddd;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+    <h1>Recruitment Posts by Salary</h1>
+    <form action="" method="get">
+        <label for="salary">Enter Desired Salary:</label>
+        <input type="number" id="salary" name="salary" required>
+        <button type="submit">Search</button>
+    </form>
+    {% if recruitment_posts %}
+        <h2>Recruitment Posts with Salary >= {{ salary }}</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th style="text-align: center; vertical-align: middle;">ID</th>
+                    <th style="text-align: center; vertical-align: middle;">Title</th>
+                    <th style="text-align: center; vertical-align: middle;">Salary</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in recruitment_posts %}
+                    <tr>
+                        <td style="text-align: center; vertical-align: middle;">{{ post.id }}</td>
+                        <td style="text-align: center; vertical-align: middle;">{{ post.title }}</td>
+                        <td style="text-align: center; vertical-align: middle;">{{ post.salary }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

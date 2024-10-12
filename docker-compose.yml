@@ -1,0 +1,74 @@
+
+services:
+  mysql:
+#    Build image từ mã nguồn của máy
+#    build:
+#      context: .
+#      dockerfile: ./Dockerfile
+    image: mysql:latest
+    container_name: mysql_ou_job
+#    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_USER: ${DATABASE_USER}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - mysql_config:/etc/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - ou_job_2024
+
+  redis:
+    image: redis:latest
+    container_name: redis_ou_job
+    ports:
+      - "6379:6379"
+    networks:
+      - ou_job_2024
+
+  django:
+#    Build image từ mã nguồn của máy
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+#    entrypoint: ./entrypoint.sh
+    container_name: django_ou_job
+#    restart: always
+    environment:
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_HOST=mysql
+      - CLOUD_NAME=${CLOUD_NAME}
+      - CLOUD_KEY=${CLOUD_KEY}
+      - CLOUD_SECRET=${CLOUD_SECRET}
+      - OAUTH2_ID=${OAUTH2_ID}
+      - OAUTH2_SECRET=${OAUTH2_SECRET}
+      - EMAIL_BACKEND=${EMAIL_BACKEND}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+#      - DJANGO_SETTINGS_MODULE=jobPortal.settings
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./:/jobPortal
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env  # Bao gồm tệp .env cho các biến môi trường
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - ou_job_2024
+networks:
+  ou_job_2024:
+    name: ou_job_2024
+volumes:
+  mysql_data: {}
+  mysql_config: {}
+

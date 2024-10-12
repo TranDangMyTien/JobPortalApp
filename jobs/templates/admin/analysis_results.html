@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BÁO CÁO KẾT QUẢ PHÂN TÍCH</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #003366;
+            text-align: center;
+        }
+        h2 {
+            margin-top: 20px;
+        }
+        .section {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .table-section {
+            margin-top: 10px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        th {
+            background-color: #004080;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .result-value {
+            font-weight: bold;
+            color: #0055b3;
+            font-size: 18px;
+        }
+        .comment-section {
+            margin-top: 10px;
+            background-color: #f4f9ff;
+            padding: 10px;
+            border-radius: 5px;
+            color: #0055b3;
+            font-style: italic;
+        }
+        .section-title {
+            font-size: 20px;
+            color: #004080;
+            margin-bottom: 10px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            margin: 5px 0;
+            background-color: #f2f2f2;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .print-button {
+            margin: 20px;
+            padding: 10px 20px;
+            background-color: #004080;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .print-button:hover {
+            background-color: #003366;
+        }
+    </style>
+</head>
+<body>
+    <h1>BÁO CÁO KẾT QUẢ PHÂN TÍCH</h1>
+
+    <button class="print-button" onclick="window.print()">In báo cáo</button>
+
+    <div class="section">
+        <h2>Xu Hướng Việc Làm Theo Tháng</h2>
+        <table>
+            <tr>
+                <th>Tháng</th>
+                <th>Số lượng</th>
+            </tr>
+            {% for month, count in monthly_trends.items %}
+            <tr>
+                <td>{{ month }}</td>
+                <td>{{ count }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div class="comment-section">
+            {% if monthly_trends|length > 0 %}
+            <p>Nhận xét: Xu hướng đơn xin việc tăng đều đặn trong các tháng, cho thấy sự quan tâm ngày càng tăng từ các ứng viên. Điều này cho thấy có nhiều người đang tìm kiếm cơ hội việc làm hơn. Mùa tuyển dụng có thể là lý do chính cho xu hướng này, bên cạnh đó là sự gia tăng nhu cầu tuyển dụng từ các công ty.</p>
+            {% else %}
+            <p>Nhận xét: Dữ liệu không có xu hướng rõ ràng, cần thu thập thêm thông tin để đưa ra kết luận. Có thể xu hướng ứng tuyển đang bị ảnh hưởng bởi nhiều yếu tố bên ngoài, hoặc có thể các mẫu dữ liệu hiện tại chưa đầy đủ để nhận biết xu hướng.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Độ Chính Xác Tỷ Lệ Thành Công</h2>
+        <p class="result-value">{{ success_rate_accuracy }}%</p>
+        <div class="comment-section">
+            {% if success_rate_accuracy >= 85 %}
+            <p>Nhận xét: Tỷ lệ thành công rất cao, cho thấy mô hình đã đạt độ chính xác đáng kể trong việc dự đoán kết quả. Điều này có nghĩa là chúng ta có thể tin tưởng vào những dự đoán mà mô hình đưa ra, điều này cực kỳ hữu ích cho các nhà tuyển dụng và ứng viên.</p>
+            {% elif success_rate_accuracy >= 70 %}
+            <p>Nhận xét: Độ chính xác khá ổn định. Mô hình có thể cần cải thiện thêm để đạt hiệu suất cao hơn. Mặc dù tỷ lệ này vẫn có giá trị, nhưng để đạt được mức độ tin cậy cao hơn, có thể cần xem xét lại các yếu tố ảnh hưởng đến độ chính xác của mô hình.</p>
+            {% else %}
+            <p>Nhận xét: Độ chính xác chưa đạt yêu cầu. Cần xem xét các yếu tố ảnh hưởng và điều chỉnh mô hình để cải thiện. Tỷ lệ này cho thấy rằng có thể có sự thiếu hụt trong dữ liệu hoặc mô hình cần được tinh chỉnh để cải thiện khả năng dự đoán.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>MSE Dự Đoán Lương</h2>
+        <ul>
+            {% for model, mse in salary_mse_results.items %}
+            <li><strong>{{ model }}:</strong> {{ mse }}</li>
+            {% endfor %}
+        </ul>
+        <div class="comment-section">
+            {% if salary_mse_min <= 1000 %}
+            <p>Nhận xét: Kết quả MSE của mô hình lương khá thấp, cho thấy độ chính xác cao trong dự đoán mức lương. MSE thấp có nghĩa là sự khác biệt giữa mức lương dự đoán và thực tế là rất nhỏ, cho thấy mô hình có khả năng ước lượng mức lương gần với thực tế.</p>
+            {% elif salary_mse_min <= 5000 %}
+            <p>Nhận xét: Độ lệch MSE trung bình, có thể cần cải tiến để đạt độ chính xác cao hơn. Điều này cho thấy rằng mô hình có thể đang hoạt động khá tốt nhưng có thể cần được tối ưu hơn để dự đoán chính xác hơn.</p>
+            {% else %}
+            <p>Nhận xét: Mô hình lương có độ lệch cao, cần điều chỉnh để giảm thiểu sai số trong dự đoán. Việc này cho thấy rằng mô hình có thể không tính đến tất cả các yếu tố cần thiết khi dự đoán, điều này cần được nghiên cứu thêm.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>MSE Dự Đoán Số Lượng Đơn Xin Việc</h2>
+        <p class="result-value">{{ application_count_mse }}</p>
+        <div class="comment-section">
+            {% if application_count_mse <= 500 %}
+            <p>Nhận xét: Sai số dự đoán số lượng đơn xin việc thấp, mô hình đạt hiệu quả tốt. Điều này có nghĩa là mô hình đang dự đoán số lượng đơn xin việc một cách chính xác, cho thấy rằng người dùng có thể tin tưởng vào những dự đoán này.</p>
+            {% elif application_count_mse <= 2000 %}
+            <p>Nhận xét: Sai số dự đoán số lượng đơn xin trung việc bình, có thể xem xét điều chỉnh mô hình để cải thiện. Việc xem xét bổ sung thêm dữ liệu hoặc thay đổi phương pháp mô hình hóa có thể giúp cải thiện độ chính xác.</p>
+            {% else %}
+            <p>Nhận xét: Sai số dự đoán số lượng đơn xin việc cao, cần nghiên cứu để điều chỉnh các tham số mô hình. Điều này có thể chỉ ra rằng mô hình đang gặp khó khăn trong việc dự đoán số lượng đơn xin và cần phải xem xét các yếu tố dữ liệu khác nhau.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>MSE Dự Đoán Khoảng Lương</h2>
+        <ul>
+            {% for model, mse in salary_range_mse_results.items %}
+            <li><strong>{{ model }}:</strong> {{ mse }}</li>
+            {% endfor %}
+        </ul>
+        <div class="comment-section">
+            {% if salary_range_mse_min <= 1000 %}
+            <p>Nhận xét: Kết quả MSE của khoảng lương thấp, mô hình hoạt động hiệu quả trong việc dự đoán mức lương trong khoảng cho phép. Điều này có nghĩa là mô hình có khả năng dự đoán mức lương trong khoảng một cách chính xác.</p>
+            {% elif salary_range_mse_min <= 5000 %}
+            <p>Nhận xét: Kết quả MSE trung bình, mô hình cần tinh chỉnh để giảm thiểu sai số. Mô hình dự đoán khá tốt nhưng có thể có sự cần thiết phải điều chỉnh để tối ưu hóa.</p>
+            {% else %}
+            <p>Nhận xét: Mô hình dự đoán khoảng lương có độ lệch cao, cần cải thiện để đảm bảo tính chính xác. Cần xem xét lại các yếu tố ảnh hưởng đến kết quả dự đoán và có thể thay đổi một số tham số của mô hình.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Trần Đặng Mỹ Tiên. Tất cả bản quyền được bảo lưu.</p>
+    </footer>
+</body>
+</html>
