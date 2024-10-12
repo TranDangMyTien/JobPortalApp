@@ -65,8 +65,4 @@ urlpatterns = [
     path('list_applications_for_post/<int:post_id>/', views.ListApplicationsForPost.as_view(), name='list_applications_for_post'),
     # path('applications/status/<int:application_id>/', views.update_application_status, name='update_application_status'),
     path('jobapplication/<int:pk>/status/', views.JobApplicationStatusUpdateView.as_view(), name='jobapplication-status-update'),
-    path('register-employer/', views.EmployerRegistrationView.as_view(), name='register-employer'),
-    path('payment_stripe/payment/', views.StripeCheckoutViewSet.as_view({'post': 'create'}), name='create_invoice'),
-    path('payment_success/', views.StripeCheckoutViewSet.as_view({'get': 'retrieve_payment'}), name='payment-success'),
-    path('invoices/', views.StripeCheckoutViewSet.as_view({'get': 'list_invoices'}), name='list_invoices'),
 ]

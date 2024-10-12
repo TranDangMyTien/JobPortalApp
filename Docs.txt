@@ -1,0 +1,39 @@
+Jenkins: 6cdc302d961c497e9a36469ab5fabe84
+- mtie
+- m1234567890
+- http://localhost:8080/
+
+ngrok: public URL
+Link: https://dashboard.ngrok.com/get-started/setup/windows
+95YHRDXMB2
+CXZRM7P553
+MCEF2K24KG
+6V6X2RQFAG
+CNNPJN4WGY
+6CVGJGHBZ4
+Q3NBAVHMV7
+CDNWGUMY5N
+2JKY3EMPRQ
+FFABXC7NSF
+ngrok config add-authtoken 2mqSNbRh9kTd6vCI4tJErDNJc3P_5DPFQFAF6B4A2UFFFGQML
+Chạy ngrok http 8080 để sinh ngrok
+https://1aa6-2405-4802-914a-fdd0-5830-f34a-8156-d85c.ngrok-free.app ->  http://localhost:8080
+
+
+Docker hub: trandangmytien m1234567890
+docker images
+docker tag jobportal-django:latest trandangmytien/ou-job:latest
+docker login
+docker push trandangmytien/ou-job:latest
+
+Mỗi khi chạy ngrok thì sinh ra link mới => Tìm cách để nó ăn 1 link (deploy lên đâu đó)
+
+
+Bên Heroku
+mytien.2682003@gmail.com
+mtieABCD268!
+
+
+AWS
+mtie
+mm.TDMTien268-03!
