@@ -86,5 +86,6 @@ typing_extensions==4.11.0
 tzdata==2024.1
 uritemplate==4.1.1
 urllib3==2.2.1
+whitenoise==6.7.0
 yagmail==0.15.293
 zope.interface==7.0.3
