@@ -17,6 +17,11 @@ RUN chmod +x /entrypoint.sh
 # Thiết lập script khởi động là ENTRYPOINT
 ENTRYPOINT ["/entrypoint.sh"]
 #CMD  python manage.py runserver 0.0.0.0:8000
+
+# LOCAL ; DOCKER ; JENKINS CI/CD
 # Lệnh mặc định để chạy server Django
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+#CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+# DEPLOY
+CMD ["gunicorn", "jobPortal.wsgi:application", "--log-file", "-"]
 

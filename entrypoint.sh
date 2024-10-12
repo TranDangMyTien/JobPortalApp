@@ -10,26 +10,6 @@ echo "Applying database migrations..."
 python manage.py makemigrations
 python manage.py migrate
 
-## Hàm để kiểm tra và tạo cơ sở dữ liệu nếu chưa tồn tại
-#create_database() {
-#    local db_name="$DATABASE_NAME"
-#    local db_user="$DATABASE_USER"
-#    local db_password="$DATABASE_PASSWORD"
-#    local db_host=""
-#
-#    # Kiểm tra nếu cơ sở dữ liệu đã tồn tại
-#    if ! mysql -h "$db_host" -u "$db_user" -p"$db_password" -e "USE $db_name"; then
-#        echo "Database $db_name does not exist. Creating..."
-#        mysql -h "$db_host" -u "$db_user" -p"$db_password" -e "CREATE DATABASE $db_name"
-#    else
-#        echo "Database $db_name already exists."
-#    fi
-#}
-#
-## Tạo cơ sở dữ liệu
-#create_database
-
-
 # Tạo superuser nếu chưa tồn tại
 echo "Creating Django superuser..."
 python manage.py shell <<EOF
@@ -51,4 +31,9 @@ python scripts/seed_data.py
 
 # Khởi động server Django
 echo "Starting Django server..."
-exec "$@"
+
+# DÙNG CHO DOCKER ; JENKINS CI/CD
+#exec "$@"
+
+# DÙNG CHO DEPLOY
+exec gunicorn jobPortal.wsgi:application --log-file -
