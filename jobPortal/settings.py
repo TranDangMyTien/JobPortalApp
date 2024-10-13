@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     # 'adminlte3',
     # 'adminlte3_theme',
     # 'admin_adminlte.apps.AdminAdminlteConfig',
-    # 'daphne',
+    'daphne',    # Bỏ ra hư chat
     # Phần chat
     'channels',
     # Quản lý admin
@@ -471,4 +471,4 @@ JAZZMIN_UI_TWEAKS = {
 STRIPE_TEST_PUBLIC_KEY = os.environ.get('STRIPE_TEST_PUBLIC_KEY')
 STRIPE_TEST_SECRET_KEY = os.environ.get('STRIPE_TEST_SECRET_KEY')
 #
-SITE_URL='http://192.168.1.56:8000'
+SITE_URL='http://192.168.1.58:8000'

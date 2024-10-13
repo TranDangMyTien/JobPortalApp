@@ -374,14 +374,28 @@ class RecruitmentPostViewSet(viewsets.ViewSet, generics.RetrieveAPIView, generic
     def hide_post(self, request, pk=None):
         try:
             post = RecruitmentPost.objects.get(pk=pk)
-            if request.method == 'POST':
-                post.active = False
-                post.save()
-                return Response(data=serializers.HideRecruitmentPostSerializer(post).data, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+            # Kiểm tra xem người dùng hiện tại có phải là Employer đã tạo ra bài đăng không
+            if post.employer.user != request.user:
+                return Response(
+                    {"error": "You are not authorized to hide this post."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            # Đánh dấu bài đăng là không hoạt động
+            post.active = False
+            post.save()
+
+            # Trả về dữ liệu của bài đăng đã ẩn
+            return Response(
+                data=serializers.HideRecruitmentPostSerializer(post).data,
+                status=status.HTTP_200_OK
+            )
         except RecruitmentPost.DoesNotExist:
-            return Response({"error": "Recruitment post not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Recruitment post not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
     # Viết API xem bài đăng tuyển mới nhất
     # /recruitments_post/newest/
@@ -1545,46 +1559,6 @@ class ListApplicationsForPost(APIView):
         except RecruitmentPost.DoesNotExist:
             return Response({"error": "Bài đăng không tồn tại"}, status=404)
 
-
-# @api_view(['PATCH'])
-# @permission_classes([permissions.IsAuthenticated])
-# def update_application_status(request, application_id):
-#     try:
-#         # Lấy đơn ứng tuyển theo ID
-#         application = Application.objects.get(id=application_id)
-#
-#         # Kiểm tra xem employer có quyền thay đổi trạng thái không
-#         if application.recruitment.employer != request.user:
-#             return Response(
-#                 {"detail": "Bạn không có quyền cập nhật đơn ứng tuyển này."},
-#                 status=status.HTTP_403_FORBIDDEN
-#             )
-#
-#         # Kiểm tra và cập nhật trạng thái
-#         serializer = JobApplicationStatusSerializer(application, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             updated_application = serializer.save()
-#             return Response(
-#                 {
-#                     "detail": "Cập nhật trạng thái đơn ứng tuyển thành công.",
-#                     "application": serializer.data
-#                 },
-#                 status=status.HTTP_200_OK
-#             )
-#
-#         return Response(
-#             {
-#                 "detail": "Dữ liệu không hợp lệ.",
-#                 "errors": serializer.errors
-#             },
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
-#
-#     except Application.DoesNotExist:
-#         return Response(
-#             {"detail": "Không tìm thấy đơn ứng tuyển."},
-#             status=status.HTTP_404_NOT_FOUND
-#         )
 
 
 class JobApplicationStatusUpdateView(APIView):

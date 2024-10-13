@@ -436,6 +436,8 @@ class MyAdminSite(admin.AdminSite):
             .annotate(count=Count('id'))
             .order_by('-count')[:5]
         )
+
+        recruitment_post_stats = dao.get_recruitment_post_stats()
         context = {
             'job_trends': dao.get_job_trends(),
             'student_jobs_stats': student_jobs_stats,
@@ -466,6 +468,7 @@ class MyAdminSite(admin.AdminSite):
             'monthly_invoice_counts': monthly_invoice_counts,
             'monthly_revenue': monthly_revenue,
             'top_5_products': top_5_products,
+            'recruitment_post_stats': recruitment_post_stats,
         }
         return render(request, 'admin/job_market_stats.html', context)
 

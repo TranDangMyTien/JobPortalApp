@@ -80,9 +80,30 @@
             font-weight: bold; /* Chữ đậm */
         }
 
-.revenue {
-    color: #27ae60; /* Màu xanh lá cho doanh thu */
-}
+        .revenue {
+            color: #27ae60; /* Màu xanh lá cho doanh thu */
+
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            text-align: left;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
     </style>
 </head>
 <body>
@@ -217,7 +238,35 @@
             <p class="highlight revenue">{{ total_revenue }} USD</p>
         </div>
     </div>
-
+    <h2>Thống kê bài đăng tuyển dụng</h2>
+    <ul>
+        <li>Tổng số bài đăng: {{ recruitment_post_stats.total_posts }}</li>
+        <li>Bài đăng đang hoạt động: {{ recruitment_post_stats.active_posts }}</li>
+        <li>Bài đăng không hoạt động: {{ recruitment_post_stats.inactive_posts }}</li>
+        <li>Bài đăng đã bị báo cáo: {{ recruitment_post_stats.reported_posts_count }}</li>
+    </ul>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <!-- Thêm các cột khác nếu cần -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in recruitment_post_stats.reported_posts_list %}
+                <tr>
+                    <td>{{ post.id }}</td>
+                    <td>{{ post.title }}</td>
+                    <!-- Thêm các cột khác nếu cần -->
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="2">No reported posts found.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
 
     <script>

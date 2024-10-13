@@ -330,3 +330,26 @@ def get_average_invoice_amount():
 
 def get_top_5_products():
     return Invoice.objects.values('product_item').annotate(count=Count('id')).order_by('-count')[:5]
+
+
+def get_recruitment_post_stats():
+    # Thống kê số bài đăng đang hoạt động và không hoạt động
+    active_posts = RecruitmentPost.objects.filter(active=True).count()
+    inactive_posts = RecruitmentPost.objects.filter(active=False).count()
+
+    # Tổng số bài đăng
+    total_posts = RecruitmentPost.objects.count()
+
+    # Số bài đăng bị báo cáo
+    reported_posts_count = RecruitmentPost.objects.filter(reported=True).count()
+
+    # Danh sách bài đăng bị báo cáo (gồm tên và id)
+    reported_posts_list = RecruitmentPost.objects.filter(reported=True).values('id', 'title')
+
+    return {
+        'active_posts': active_posts,
+        'inactive_posts': inactive_posts,
+        'total_posts': total_posts,
+        'reported_posts_count': reported_posts_count,
+        'reported_posts_list': list(reported_posts_list),
+    }
