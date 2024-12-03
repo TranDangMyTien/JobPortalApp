@@ -48,7 +48,7 @@ $\to$ Analyze data from the database, use algorithms to make predictions. Displa
 
 ## Technologies Used
 * Backend: Django REST Framework (DRF)
-* Databases: MySQL
+* Databases: MySQL, Redis
 * CI/CD: Github, Jenkins, Ngrok 
 * Chat real-time: WebSocket 
 * Deployment and hosting: Docker, Heroku 
